@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" href="static\favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Archivos Excel</title>
+
+    <!-- Enlace a Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- Enlace a FontAwesome para Bootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="container mt-5">
+    <h1 class="mb-4">Limpieza archivos Mayorista</h1>
+    <form method="post" enctype="multipart/form-data" onsubmit="formatearNombresColumnas()">
+        <div class="mb-3">
+            <label for="regex_pattern" class="form-label">Caracteres que desea eliminar:</label>
+            <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="Ingrese los caracteres que desea eliminar separados por una coma, como por ejemplo: #, /, //">
+            </i>
+            <input type="text" id="regex_pattern" name="regex_pattern" class="form-control"
+                placeholder="Ingrese el patrón de expresión regular">
+        </div>
+
+        <div class="mb-3">
+            <label for="file" class="form-label">Cargar Archivos Excel:</label>
+            <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="Seleccione uno o varios archivos Excel para procesar">
+            </i>
+            </label>
+            <input type="file" name="file[]" class="form-control" multiple>
+        </div>
+        <button type="submit" class="btn btn-primary">Procesar</button>
+    </form>
+
+    <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Enlace a FontAwesome para Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+    <!-- Resto del código... -->
+    <script>
+        // Inicializar tooltips de Bootstrap
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+    
+</body>
+
+</html>
+

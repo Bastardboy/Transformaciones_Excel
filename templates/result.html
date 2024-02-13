@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" href="static\favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha384-oGhgRJg5ZExbpjYXl5R8RHCnUwWt4n2tHkOMM5IlD8r1jDSxYVg7rtACtZ/HsrND" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado del Procesamiento</title>
+
+    <!-- Enlace a Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+
+<body class="container mt-5">
+    <script>
+        async function descargarTodos() {
+            const enlacesDescarga = document.querySelectorAll('#resultadoDescargas a');
+            
+            // Iterar sobre cada enlace de descarga
+            for (const enlace of enlacesDescarga) {
+                await descargarConRetraso(enlace.href, enlace.download);
+            }
+        }
+    
+        async function descargarConRetraso(href, download) {
+            const link = document.createElement('a');
+            link.href = href;
+            link.download = download;
+    
+            // Simular clic asíncrono para iniciar la descarga
+            await new Promise((resolve) => {
+                link.addEventListener('click', resolve);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+    </script>
+    
+    <h1>Resultado del Procesamiento</h1>
+    <p>{{ message }}</p>
+
+    {% if output_paths %}
+    
+        <h2>Archivos Generados:</h2>
+        <table class="table" id="resultadoDescargas">
+            <thead>
+                <tr>
+                    <th>Archivo</th>
+                    <th>Descargar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for path in output_paths %}
+                    <tr>
+                        <td>{{ path | basename }}</td>
+                        <td>
+                            <a href="{{ url_for('consolidados', user_id=session['user_id'], filename=path | basename) }}" download>
+                                <img src="{{ url_for('static', filename='sobresalir.png') }}" alt="Excel Icon" style="width: 20px; height: 20px;">
+                                Descargar
+                            </a>                     
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Botón para descargar todos los archivos -->
+        <button id="descargarTodos" class="btn btn-primary" onclick="descargarTodos()">Descargar Todos</button>
+
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver Atrás</a>
+    {% endif %}
+
+    <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
