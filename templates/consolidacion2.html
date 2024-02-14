@@ -11,12 +11,14 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <link rel="stylesheet" href="static/style.css">
+
+    
 
 </head>
 
 <body class="container mt-5">
     <h1 class="mb-4">Consolidación de archivos Excel</h1>
-    
 
     <form method="post" action="consolidar_archivos" enctype="multipart/form-data" id="form_concatenar_las_columnas">
         {% if headers_base %}
@@ -43,10 +45,16 @@
                 </select>
                 <small class="form-text text-muted">Seleccione un encabezado de la lista desplegable.</small>
             </div>
-            <button type="submit" class="btn btn-primary" id="Ejecutar Consolidación" onclick="">Cargar</button>
+
+            <!-- Sección para Mostrar Casillas de Selección -->
+            <div class="mb-3" id="columnas_seleccionadas" style="display: none;">
+                <label class="form-label">Seleccione las columnas a agregar al excel consolidado:</label>
+                <div id="checkbox_container" class="horizontal-list"></div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="cargar_btn">Cargar</button>
         {% endif %}
     </form>
-
 
     <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -61,10 +69,70 @@
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
+
+            // Mostrar dinámicamente las casillas de selección al cambiar el encabezado_combinar
+            document.getElementById('encabezados_combinar').addEventListener('change', function () {
+                var selectedHeader = this.value;
+                if (selectedHeader) {
+                    mostrarCasillasSeleccion(selectedHeader);
+                } else {
+                    ocultarCasillasSeleccion();
+                }
+            });
+
+            // Función para mostrar casillas de selección
+            function mostrarCasillasSeleccion(selectedHeader) {
+                var checkboxContainer = document.getElementById('checkbox_container');
+                checkboxContainer.innerHTML = '';  // Limpiar cualquier contenido existente
+
+                // Obtener columnas asociadas al encabezado seleccionado
+                fetch('/obtener_columnas?encabezado=' + encodeURIComponent(selectedHeader))
+                    .then(response => response.json())
+                    .then(data => {
+                        var columnas = data.columnas_combinar;  // Asegúrate de que tu servidor devuelva un objeto JSON con una propiedad 'columnas'
+
+                        // Crear casillas de selección
+                        columnas.forEach(function (columna) {
+                            var checkboxDiv = document.createElement('div');
+                            checkboxDiv.classList.add('form-check');
+
+                            var checkboxInput = document.createElement('input');
+                            checkboxInput.classList.add('form-check-input');
+                            checkboxInput.type = 'checkbox';
+                            checkboxInput.name = 'columnas_seleccionadas';
+                            checkboxInput.value = columna;
+                            checkboxInput.id = columna;
+
+                            var checkboxLabel = document.createElement('label');
+                            checkboxLabel.classList.add('form-check-label');
+                            checkboxLabel.htmlFor = columna;
+                            checkboxLabel.textContent = columna;
+
+                            checkboxDiv.appendChild(checkboxInput);
+                            checkboxDiv.appendChild(checkboxLabel);
+
+                            checkboxContainer.appendChild(checkboxDiv);
+                        });
+
+                        // Mostrar la sección de casillas de selección
+                        document.getElementById('columnas_seleccionadas').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // Función para ocultar casillas de selección
+            function ocultarCasillasSeleccion() {
+                document.getElementById('columnas_seleccionadas').style.display = 'none';
+            }
+
+            // Manejar el evento de clic en el botón Cargar
+            document.getElementById('cargar_btn').addEventListener('click', function () {
+                // Puedes agregar lógica adicional aquí si es necesario
+                // Ejemplo: validar que al menos una casilla esté seleccionada antes de enviar el formulario
+                document.getElementById('form_concatenar_las_columnas').submit();
+            });
         });
-
     </script>
-
 </body>
 
 </html>

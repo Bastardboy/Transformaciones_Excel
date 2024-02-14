@@ -139,6 +139,7 @@ def limpiar_detalle(archivo, user_id):
         return None
     
 
+# El cargar_archivo tiene la funcionalidad de realizar el merge sin más de los archivos subidos
 def cargar_archivo(archivos, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
@@ -174,7 +175,7 @@ def cargar_archivo(archivos, user_id):
 
 
     
-# Función para realizar una carga de archivos del caso 2 [Consolidar en base a una columna]   
+# Función para realizar una carga de archivos del caso 2 [Consolidar en base a una columna] de aquí obtenemos la ruta de los archivos [Posición donde fue subido] y los encabezados
 def cargar_archivos(archivos_base, archivos_combinar, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
@@ -219,33 +220,42 @@ def cargar_archivos(archivos_base, archivos_combinar, user_id):
     return saved_files_base, headers_base, saved_files_combinar, headers_combinar
 
 
-
-def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_combinar, user_id):
+# Función para realizar la consolidación de archivos Base y Combinar. En base a las columnas seleccionadas por el usuario.
+def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_combinar, columnas_seleccionadas, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
 
     if not os.path.exists(ruta_usuario):
         os.makedirs(ruta_usuario)
-
+    print(f'Columnas seleccionadas en la función consolidar archivo, antes del try y for: {columnas_seleccionadas}')
     try:
         archivo_base = os.path.normpath(archivo_base)
         archivos_combinar = [os.path.normpath(archivo) for archivo in archivos_combinar]
         df_base = pd.read_excel(archivo_base, header=0)
+        
+        # Guardar los nombres de las columnas del archivo base
+        columnas_base = df_base.columns.tolist()
+
+        print(f'Empieza a contar el tiempo')
         start_time = time.time()
         # Leer y combinar los archivos a fusionar
         for archivo_combinar in archivos_combinar:
             df_combinar = pd.read_excel(archivo_combinar, header=0)
 
             df_base = pd.merge(df_base, df_combinar, left_on=header_base, right_on=header_combinar, how='left')
-            
-        end_time = time.time()
-        print(f'Tiempo de ejecución para el merge: {end_time - start_time} segundos')
+        
+        print(f'Columnas dentro del try{columnas_seleccionadas}')
+        # Seleccionar las columnas del archivo base y las columnas seleccionadas de los archivos a combinar
+        columnas_finales = columnas_base + columnas_seleccionadas
+        df_base = df_base[columnas_finales]
 
         nombre_archivo_base = os.path.basename(archivo_base) 
         # Guardar el resultado en un nuevo archivo
         resultado_path = os.path.join(ruta_usuario,  f'Consolidación_para_{nombre_archivo_base}')
         df_base.to_excel(resultado_path, index=False)
-
+        
+        end_time = time.time()
+        print(f'Tiempo de ejecución para el merge: {end_time - start_time} segundos')
         return resultado_path
 
     except Exception as e:

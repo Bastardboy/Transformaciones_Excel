@@ -15,14 +15,38 @@
 
 <body class="container mt-5">
     <h1 class="mb-4">Limpieza archivos Detalles Netcracker</h1>
-    <form method="post" enctype="multipart/form-data" onsubmit="formatearNombresColumnas()">
+
+    <div class="mb-3">
+        <label id="modo_consolidacion" class="form-label">Seleccione el Modo de Limpieza:</label>
+        <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+            title="Tubo hace referencia al caracter |, mientras que Coma al caracter ,">
+        </i>
+        <div class="btn-group" role="group" aria-label="Modo de Detalles">
+            <button type="button" class="btn btn-primary" onclick="mostrarFormulario('Form_Subir_Archivos_Coma');">Limpiar archivos por Comas</button>
+            <button type="button" class="btn btn-primary" onclick="mostrarFormulario('Form_Subir_Archivos_Tubo');">Limpiar archivos por Tubo</button>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="Form_Subir_Archivos_Coma" style="display: none;">
+        <input type="hidden" name="modo_seleccionado" value="limpiar_coma">
         <div class="mb-3">
             <label for="file" class="form-label">Cargue sus archivos Excel:</label>
             <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                 title="Seleccione uno o varios archivos Excel para procesar">
             </i>
-            </label>
-            <input type="file" name="file2[]" class="form-control" multiple>
+            <input type="file" name="file2[]" class="form-control" id="Subida_de_Archivos" multiple>
+        </div>
+        <button type="submit" class="btn btn-primary">Procesar</button>
+    </form>
+
+    <form method="post" enctype="multipart/form-data" id="Form_Subir_Archivos_Tubo" style="display: none;">
+        <input type="hidden" name="modo_seleccionado" value="limpiar_tubo">
+        <div class="mb-3">
+            <label for="file" class="form-label">Cargue sus archivos Excel:</label>
+            <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="Seleccione uno o varios archivos Excel para procesar">
+            </i>
+            <input type="file" name="file2[]" class="form-control" id="Subida_de_Archivos" multiple>
         </div>
         <button type="submit" class="btn btn-primary">Procesar</button>
     </form>
@@ -34,6 +58,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 
     <!-- Resto del código... -->
+
     <script>
         // Inicializar tooltips de Bootstrap
         document.addEventListener('DOMContentLoaded', function () {
@@ -42,9 +67,17 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
         });
+    
+        function mostrarFormulario(formularioId) {
+            // Ocultar todos los formularios
+            document.getElementById('Form_Subir_Archivos_Coma').style.display = 'none';
+            document.getElementById('Form_Subir_Archivos_Tubo').style.display = 'none';
+
+            // Mostrar el formulario correspondiente
+            document.getElementById(formularioId).style.display = 'block';
+        }
     </script>
     
 </body>
 
 </html>
-

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory, session, abort
+from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify
 import os
 import uuid
 from Casos.utils import procesar_archivo, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo
@@ -10,6 +10,12 @@ app = Flask(__name__)
 # Session(app)
 
 app.secret_key = 'tu_clave_secreta_super_secreta'  # Cambia esto a una cadena segura
+
+@app.route('/obtener_columnas', methods=['GET'])
+def obtener_columnas():
+    columnas = session.get('columnas_combinar', [])
+    print(f'Columnas a combinar: {columnas}')
+    return jsonify({'columnas_combinar': columnas})
 
 # Filtro para obtener el nombre base de un archivo
 @app.template_filter('basename')
@@ -84,6 +90,9 @@ def limpiar():
 @app.route('/detalles', methods=['GET', 'POST'])
 def detalles():
     if request.method == 'POST':
+        modo_seleccionado = request.form.get('modo_seleccionado')
+        print(f'Modo seleccionado en la solicitud POST: {modo_seleccionado}')
+        
         upload_files = request.files.getlist('file2[]')
         ruta_temporal = 'Detallados'
 
@@ -95,7 +104,8 @@ def detalles():
             file_path = os.path.join(ruta_temporal, file.filename)
             file.save(file_path)
 
-            output_path = limpiar_detalle(file_path, user_id)
+            # Pasa el modo seleccionado a la función limpiar_detalle
+            output_path = limpiar_detalle(file_path, user_id, modo_seleccionado)
             output_paths.append(output_path)
 
             os.remove(file_path)
@@ -107,7 +117,6 @@ def detalles():
 
     return render_template('detalles.html')
 
-# Modifica la función consolidar
 @app.route('/consolidar', methods=['GET','POST'])
 def consolidar():
     saved_files_base = []
@@ -143,9 +152,8 @@ def consolidar():
             saved_files_base, headers_base, saved_files_combinar, headers_combinar = cargar_archivos(
                 uploaded_files_base, uploaded_files_combinar, user_id)
             
-            session['archivo_base'] = saved_files_base
-            session['archivo_combinar'] = saved_files_combinar
-        return render_template('consolidacion2.html', saved_files_base=saved_files_base, saved_files_combinar=saved_files_combinar, headers_base=headers_base, headers_combinar=headers_combinar)
+            session['columnas_combinar'] = headers_combinar
+            return render_template('consolidacion2.html', saved_files_base=saved_files_base, saved_files_combinar=saved_files_combinar, headers_base=headers_base, headers_combinar=headers_combinar)
         
     return render_template('consolidacion.html')
 
@@ -159,10 +167,12 @@ def consolidar_columna():
     saved_files_base = session.get('archivo_base')[0]
     saved_files_combinar = session.get('archivo_combinar')
 
+    columnas_seleccionadas = request.form.getlist('columnas_seleccionadas')
+
     print(f'headers_base: {headers_base}')
     print(f'headers_combinar: {headers_combinar}')
-
     print(f'saved_files_combinar: {saved_files_combinar}')
+    print(f'columns_to_save: {columnas_seleccionadas}')
 
     saved_files_base = saved_files_base.replace("\\", "/")
 
@@ -170,12 +180,14 @@ def consolidar_columna():
 
 
     # Llama a la función consolidar_archivos para manejar la consolidación
-    output_path = consolidar_archivos(saved_files_base,  saved_files_combinar, headers_base, headers_combinar, user_id)
+    output_path = consolidar_archivos(saved_files_base,  saved_files_combinar, headers_base, headers_combinar, columnas_seleccionadas, user_id)
 
     print(f'output_path: {output_path}')
 
 
     return render_template('result3.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_path)
+
+
 
 @app.route('/')
 def index():
@@ -183,7 +195,6 @@ def index():
     user_id = session.get('user_id')
 
     if user_id is None:
-        user_id = str(uuid.uuid4())
         session['user_id'] = user_id
         print(f'Nuevo usuario. ID: {user_id}')
     else:

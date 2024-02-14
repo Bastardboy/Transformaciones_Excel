@@ -1,0 +1,8 @@
+.horizontal-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.horizontal-list .checkbox {
+    margin-right: 2em; /* Ajusta este valor según tus necesidades */
+}
