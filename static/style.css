@@ -6,3 +6,60 @@
 .horizontal-list .checkbox {
     margin-right: 2em; /* Ajusta este valor según tus necesidades */
 }
+
+.button{
+    padding: 10px;
+    display: inline-block;
+}
+
+.btn-yellow{
+    background-color: #eda215;
+    color: white;
+}
+
+.btn-yellow:hover{
+    background-color: #eda215;
+}
+
+.btn-aqua{
+    background-color: #4db99c;
+    color: white;
+}
+
+.btn-aqua:hover{
+    background-color: #4db99c;
+}
+
+.btn-blue{
+    background-color: #4e6eaf;
+    color: white;
+}
+
+.btn-blue:hover{
+    background-color: #4e6eaf;
+}
+
+.btn{
+    padding: 0.375rem 1.5rem;
+}
+
+body {
+    padding-bottom: 70px; /* Altura del pie de página */
+}
+
+.header {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    text-align: center;
+}
+
+.footer {
+    background-color: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}

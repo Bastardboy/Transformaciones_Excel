@@ -13,12 +13,33 @@
     
     <link rel="stylesheet" href="static/style.css">
 
-    
+    <style>
+        body {
+            padding-bottom: 70px; /* Altura del pie de página */
+        }
+
+        .header {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+    </style>    
 
 </head>
 
 <body class="container mt-5">
-    <h1 class="mb-4">Consolidación de archivos Excel</h1>
+
 
     <form method="post" action="consolidar_archivos" enctype="multipart/form-data" id="form_concatenar_las_columnas">
         {% if headers_base %}

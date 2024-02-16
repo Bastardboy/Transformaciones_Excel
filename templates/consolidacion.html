@@ -11,62 +11,66 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <script>
+    <link rel="stylesheet" href="static/style.css">
 
-    </script>
 
 </head>
 
 <body class="container mt-5">
+
+    <header class="header">
     <h1 class="mb-4">Consolidación de archivos Excel</h1>
+    </header>
     
 
-        <div class="mb-3">
-            <label id="modo_consolidacion" class="form-label">Seleccione el Modo de Consolidación:</label>
-            <div class="btn-group" role="group" aria-label="Modo de Consolidación">
-                <input type="hidden" name="modo_seleccionado" id="modo_seleccionado">
-                <button type="button" class="btn btn-primary" name="modo_seleccionado" value="concatenar_archivos" onclick="mostrarFormulario('concatenar_archivos');">Concatenar toda la información</button>
-                <button type="button" class="btn btn-primary" name="modo_seleccionado" value="concatenar_por_columnas" onclick="mostrarFormulario('concatenar_por_columnas');">Concatenar en base a Columna similar</button>
+            <div class="mb-3 text-center">
+                <label id="modo_consolidacion" class="form-label">Seleccione el Modo de Consolidación:</label>
             </div>
-        </div>
-
-
-        <!-- Formulario para Cargar Archivos (Concatenar Archivos) -->
-        <form method="post" enctype="multipart/form-data" id="form_concatenar_archivos" style="display: none;">
-            <input type="hidden" name="modo_seleccionado" id="modo_seleccionado_concatenar_archivos">
-            <div class="mb-3">
-                <label for="file_base" class="form-label">Cargue su archivo base Excel:</label>
-                <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                    title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
-                </i>
-                <input type="file" name="file3[]" class="form-control" multiple>
-                <input type="hidden" name="modo_seleccionado" id="modo_seleccionado">
-                <button type="submit" class="btn btn-primary" id="Cargar">Cargar</button>
+            <div class="mb-3 text-center">
+                <div class="btn-group" role="group" aria-label="Modo de Consolidación">
+                    <input type="hidden" name="modo_seleccionado" id="modo_seleccionado">
+                    <button type="button" class="btn btn-primary me-2" name="modo_seleccionado_detalle" value="limpiar_coma" onclick="mostrarFormulario('limpiar_coma');">Limpiar archivos por Comas</button>
+                    <button type="button" class="btn btn-primary" name="modo_seleccionado_detalle" value="limpiar_tubo" onclick="mostrarFormulario('limpiar_tubo');" >Limpiar archivos por Tubo</button>
+                </div>
             </div>
 
-        </form>
-    
 
-        
-    <!-- Sección para Cargar Archivos Excel Concatenar por columnas -->
-    <form method="post" enctype="multipart/form-data" id="form_concatenar_por_columnas" style="display: none;">
-        <input type="hidden" name="modo_seleccionado" id="modo_seleccionado_concatenar_por_columnas">
-        <div class="mb-3">
-            <label for="file_base" class="form-label">Cargue su archivo base Excel:</label>
-            <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
-            </i>
-            <input type="file" name="file4[]" class="form-control" multiple>
+            <!-- Formulario para Cargar Archivos (Concatenar Archivos) -->
+            <form method="post" enctype="multipart/form-data" id="form_concatenar_archivos" style="display: none;">
+                <input type="hidden" name="modo_seleccionado" id="modo_seleccionado_concatenar_archivos">
+                <div class="mb-3">
+                    <label for="file_base" class="form-label">Cargue su archivo base Excel:</label>
+                    <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
+                    </i>
+                    <input type="file" name="file3[]" class="form-control" multiple>
+                    <input type="hidden" name="modo_seleccionado" id="modo_seleccionado">
+                    <button type="submit" class="btn btn-primary mt-2" id="Cargar">Cargar</button>
+                </div>
 
-            <label for="file_combinar" class="form-label">Cargue sus archivos a combinar:</label>
-            <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                title="Los archivos a combinar deben tener por lo menos un campo en común, y deben tener formato xlsx">
-            </i>
-            <input type="file" name="file5[]" class="form-control" multiple>
-            <button type="submit" class="btn btn-primary" id="Cargar" onclick="">Cargar</button>
-        </div>
+            </form>
 
-    </form>
+
+
+            <!-- Sección para Cargar Archivos Excel Concatenar por columnas -->
+            <form method="post" enctype="multipart/form-data" id="form_concatenar_por_columnas" style="display: none;">
+                <input type="hidden" name="modo_seleccionado" id="modo_seleccionado_concatenar_por_columnas">
+                <div class="mb-3">
+                    <label for="file_base" class="form-label">Cargue su archivo base Excel:</label>
+                    <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
+                    </i>
+                    <input type="file" name="file4[]" class="form-control" multiple>
+
+                    <label for="file_combinar" class="form-label">Cargue sus archivos a combinar:</label>
+                    <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Los archivos a combinar deben tener por lo menos un campo en común, y deben tener formato xlsx">
+                    </i>
+                    <input type="file" name="file5[]" class="form-control" multiple>
+                    <button type="submit" class="btn btn-primary mt-2" id="Cargar" onclick="">Cargar</button>
+                </div>
+
+            </form>
 
 
 
@@ -98,6 +102,10 @@
         }
 
     </script>
+         <div class="footer">
+            <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+            <p>&copy; 2024 Procesador de Archivos Excel</p>
+        </div>
 </body>
 
 </html>

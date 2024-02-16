@@ -12,10 +12,36 @@
 
     <!-- Enlace a FontAwesome para Bootstrap -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            padding-bottom: 70px; /* Altura del pie de página */
+        }
+
+        .header {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body class="container mt-5">
-    <h1 class="mb-4">Limpieza archivos Mayorista</h1>
+
+    <header class="header">
+        <h1 class="mb-4">Limpieza archivos Mayorista</h1>
+    </header>
     <form method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="regex_pattern" class="form-label">Caracteres que desea eliminar:</label>
@@ -54,6 +80,10 @@
         });
     </script>
     
+        <div class="footer">
+        <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+        <p>&copy; 2024 Procesador de Archivos Excel</p>
+    </div>
 </body>
 
 </html>
