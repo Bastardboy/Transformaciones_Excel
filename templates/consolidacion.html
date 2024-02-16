@@ -68,34 +68,6 @@
 
     </form>
 
-    <form method="post" enctype="multipart/form-data" id="form_concatenar_las_columnas" style="display: none;">
-        {% if headers_base %}
-            <!-- Sección para Mostrar Encabezados del Archivo Base -->
-            <div class="mb-3">
-                <label for="encabezados_base" class="form-label">Seleccione un encabezado del Archivo Base:</label>
-                <select class="form-select" id="encabezados_base" name="encabezados_base">
-                    {% for header in headers_base %}
-                        <option value="{{ header }}">{{ header }}</option>
-                    {% endfor %}
-                </select>
-                <small class="form-text text-muted">Seleccione un encabezado de la lista desplegable.</small>
-            </div>
-        {% endif %}
-
-        {% if headers_combinar %}
-            <!-- Sección para Mostrar Encabezados de Archivos a Combinar -->
-            <div class="mb-3">
-                <label for="encabezados_combinar" class="form-label">Seleccione un encabezado del Archivo a Combinar:</label>
-                <select class="form-select" id="encabezados_combinar" name="encabezados_combinar">
-                    {% for header in headers_combinar %}
-                        <option value="{{ header }}">{{ header }}</option>
-                    {% endfor %}
-                </select>
-                <small class="form-text text-muted">Seleccione un encabezado de la lista desplegable.</small>
-            </div>
-            <button type="submit" class="btn btn-primary" id="Ejecutar Consolidación" onclick="">Cargar</button>
-        {% endif %}
-    </form>
 
 
     <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->

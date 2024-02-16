@@ -22,18 +22,21 @@
                 await descargarConRetraso(enlace.href, enlace.download);
             }
         }
-    
         async function descargarConRetraso(href, download) {
             const link = document.createElement('a');
             link.href = href;
             link.download = download;
-    
+
             // Simular clic asíncrono para iniciar la descarga
             await new Promise((resolve) => {
                 link.addEventListener('click', resolve);
                 document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
+
+                // Retrasar la eliminación del enlace
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 1000);  // Retrasar la eliminación 1 segundo
             });
         }
     </script>
@@ -56,7 +59,7 @@
                     <tr>
                         <td>{{ path | basename }}</td>
                         <td>
-                            <a href="{{ url_for('consolidados', user_id=session['user_id'], filename=path | basename) }}" download>
+                            <a href="{{ url_for('limpiados', user_id=session['user_id'], filename=path | basename) }}" download>
                                 <img src="{{ url_for('static', filename='sobresalir.png') }}" alt="Excel Icon" style="width: 20px; height: 20px;">
                                 Descargar
                             </a>                     

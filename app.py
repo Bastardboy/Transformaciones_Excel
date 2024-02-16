@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify
+from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify, logging
 import os
 import uuid
-from Casos.utils import procesar_archivo, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo
+from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar
+from itertools import chain
 
 app = Flask(__name__)
 
@@ -24,7 +25,7 @@ def basename_filter(s):
 app.jinja_env.filters['basename'] = basename_filter
 
 #Ruta para la descarga de los archivos seccion Limpiados
-@app.route('/limpiados/<user_id>/<filename>', methods=['GET'])
+@app.route('/limpiar_archivos/<user_id>/<filename>', methods=['GET'])
 def limpiados(user_id, filename):
     ruta_limpiados = os.path.join('Limpiados', user_id)
 
@@ -62,60 +63,60 @@ def consolidados(user_id, filename):
 def limpiar():
     if request.method == 'POST':
         uploaded_files = request.files.getlist('file[]')
-        ruta_temporal = 'Limpiados'
-
         user_id = session.get('user_id')
+        ruta_temporal = 'Limpiados'
+        print(f'Archivos cargados (?):{uploaded_files}')
+        ruta_usuario = os.path.join(ruta_temporal, user_id)
+
+        # Asegúrate de que el directorio existe antes de guardar los archivos
+        if not os.path.exists(ruta_usuario):
+            os.makedirs(ruta_usuario)
 
         output_paths = []
-
+        rutas_archivos = []
         regex_pattern = request.form.get('regex_pattern', '')  # Obtener el patrón de expresión regular desde el formulario
 
+        uploaded_files_paths = []
+        
         for file in uploaded_files:
-            file_path = os.path.join(ruta_temporal, file.filename)
+            file_path = os.path.join(ruta_usuario, file.filename)
             file.save(file_path)
+            uploaded_files_paths.append(file_path)  # Agregar la ruta del archivo a la lista
 
-            output_path = procesar_archivo(file_path, regex_pattern, user_id)
-            output_paths.append(output_path)
+        print(f'uploaded_files_paths: {uploaded_files_paths}')
 
-            os.remove(file_path)
-
-        # Guardar los resultados en la sesión del usuario
-        session['output_paths'] = output_paths
-        print(f'Contenido de la session: {session["output_paths"]}')
-        return render_template('result.html', message='Archivos procesados y guardados exitosamente.', output_paths=output_paths)
+        output_path, headers = cargar_archivos_limpiar(uploaded_files_paths, user_id)
+        archivos_con_encabezados = dict(zip(output_path, headers))
+        rutas_archivos.extend(output_path)
+        session['rutas_archivos'] = rutas_archivos
+        session['regex_pattern'] = regex_pattern
+        session['archivos_con_encabezados'] = archivos_con_encabezados
+        return render_template('limpiar2.html', output_paths=output_paths, regex_pattern=regex_pattern, archivos_con_encabezados=archivos_con_encabezados)
 
     return render_template('Limpiar.html')
 
 
-@app.route('/detalles', methods=['GET', 'POST'])
-def detalles():
-    if request.method == 'POST':
-        modo_seleccionado = request.form.get('modo_seleccionado')
-        print(f'Modo seleccionado en la solicitud POST: {modo_seleccionado}')
-        
-        upload_files = request.files.getlist('file2[]')
-        ruta_temporal = 'Detallados'
+@app.route('/limpiar_archivos', methods=['POST'])
+def limpiar_archivos():
+    user_id = session.get('user_id')
+    regex_pattern = session.get('regex_pattern')
+    archivos_con_encabezados = session.get('archivos_con_encabezados')
+    rutas_archivos = session.get('rutas_archivos')
+    nombre_columna = [nombre.strip() for nombre in request.form.get('nombre_columna').split(',')]
+    headers = {}
+    for archivo in archivos_con_encabezados.keys():
+        headers[archivo] = request.form.get('encabezados_' + archivo)
 
-        user_id = session.get('user_id')
+    print(f'Headers: {headers}') # Headers Seleccionados
+    print(f'Archivos con encabezados: {archivos_con_encabezados}') # Archivos y sus encabezados correspondientes
+    print(f'Rutas archivos: {rutas_archivos}') # Ruta hacia donde se encuentran los archivos
+    print(f'Nombre columna: {nombre_columna}') # Nombre de las columnas que deben existir en los archivos (sino, se crean)
+    print(f'User ID: {user_id}') # ID del usuario
+    
+    columna_orden = None  # Deberías definir esto si es necesario
+    output_paths = procesar_multiples_archivos(rutas_archivos, regex_pattern, nombre_columna, headers, user_id, columna_orden)
 
-        output_paths = []
-
-        for file in upload_files:
-            file_path = os.path.join(ruta_temporal, file.filename)
-            file.save(file_path)
-
-            # Pasa el modo seleccionado a la función limpiar_detalle
-            output_path = limpiar_detalle(file_path, user_id, modo_seleccionado)
-            output_paths.append(output_path)
-
-            os.remove(file_path)
-
-        # Guardar los resultados en la sesión del usuario
-        session['output_paths'] = output_paths
-        print(f'Contenido de la session: {session["output_paths"]}')
-        return render_template('result2.html', message='Archivos procesados y guardados exitosamente.', output_paths=output_paths)
-
-    return render_template('detalles.html')
+    return render_template('result.html', message='Archivos procesados y guardados exitosamente.', output_paths=output_paths)
 
 @app.route('/consolidar', methods=['GET','POST'])
 def consolidar():
@@ -169,15 +170,7 @@ def consolidar_columna():
 
     columnas_seleccionadas = request.form.getlist('columnas_seleccionadas')
 
-    print(f'headers_base: {headers_base}')
-    print(f'headers_combinar: {headers_combinar}')
-    print(f'saved_files_combinar: {saved_files_combinar}')
-    print(f'columns_to_save: {columnas_seleccionadas}')
-
     saved_files_base = saved_files_base.replace("\\", "/")
-
-    print(f'saved_files_base: {saved_files_base}')
-
 
     # Llama a la función consolidar_archivos para manejar la consolidación
     output_path = consolidar_archivos(saved_files_base,  saved_files_combinar, headers_base, headers_combinar, columnas_seleccionadas, user_id)
@@ -187,6 +180,39 @@ def consolidar_columna():
 
     return render_template('result3.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_path)
 
+@app.route('/detalles', methods=['GET', 'POST'])
+def detalles():
+    # Hay que devolver las columnas, para que haga el menu desplegable
+    if request.method == 'POST':
+        modo_seleccionado = request.form.get('modo_seleccionado_detalle')
+        print(f'Modo seleccionado en la solicitud POST: {modo_seleccionado}')
+
+        if modo_seleccionado == 'limpiar_coma':
+            upload_files = request.files.getlist('file1[]')
+        elif modo_seleccionado == 'limpiar_tubo':
+            upload_files = request.files.getlist('file2[]')
+
+        ruta_temporal = 'Detallados'
+        user_id = session.get('user_id')
+        output_paths = []
+
+        for file in upload_files:
+            file_path = os.path.join(ruta_temporal, file.filename)
+            file.save(file_path)
+
+            # Pasa el modo seleccionado a la función limpiar_detalle
+            output_path = limpiar_detalle(file_path, modo_seleccionado, user_id)
+            output_paths.append(output_path)
+
+            os.remove(file_path)
+
+        # Guardar los resultados en la sesión del usuario
+        session['output_paths'] = output_paths
+        print(f'Contenido de la session: {session["output_paths"]}')
+
+        return render_template('result2.html', message='Archivos procesados y guardados exitosamente.', output_paths=output_paths)
+
+    return render_template('detalles.html')
 
 
 @app.route('/')
@@ -195,6 +221,7 @@ def index():
     user_id = session.get('user_id')
 
     if user_id is None:
+        user_id = str(uuid.uuid4())  # Genera un nuevo UUID
         session['user_id'] = user_id
         print(f'Nuevo usuario. ID: {user_id}')
     else:

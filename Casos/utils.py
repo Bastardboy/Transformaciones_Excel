@@ -37,14 +37,21 @@ def limpiar_carpeta_static():
             print(f"No se pudo eliminar {file_path}. Error: {e}")
 
 
-# Función para procesar el archivo de Ventas Mayoristas
-def procesar_archivo(archivo, regex_pattern, user_id):
-    # Orden que tendrá el excel para Ventas Mayoristas
-    column_order = ['ID', 'OV', 'OV LIMPIO', 'ID Prefactibilidad', 'Ejecutivo/\ndirector', 'País', 'Fecha Oportunidad', 'Fecha de Cierre Venta', 'Cliente', 'Dirección', 'Zona', 'Detalle', 'Servicio', 'Renta UF', 'Valor UF Cruzada', 'Uf habilitación', 'Plazo contrato', 'Plazo Implementación Min', 'Plazo Implementación Máx', 'Unnamed: 18', 'UF Ajustada', 'VENTA TOTAL', 'Plazo Implementación']
+# SECCIÓN DE FUNCIONES PARA EL CASO DE LIMPIAR ARCHIVOS EN BASE A UNA CADENA REGEX
 
-    # Columnas que pueden no existir en ventas Mayoristas y se agregarán.
-    columnas = ['Renta UF', 'Valor UF Cruzada', 'Uf habilitación', 'Plazo contrato', 'Plazo Implementación Min', 'Plazo Implementación Máx']
+def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_seleccionada, user_id, columna_orden=None):
+    output_paths = []
+    for archivo in archivos:
+        columna_sel = columna_seleccionada.get(archivo)
+        print(f'Columna seleccionada: {columna_sel} del archivo {archivo}')
+        if columna_sel is not None:
+            output_path = procesar_archivo(archivo, regex_pattern, user_id, columns, columna_sel, columna_orden)
+            print(f"Ruta de salida: {output_path}")  # Debug: Verificar la ruta de salida
+            output_paths.append(output_path)
+    print(f'Output paths: {output_paths}')
+    return output_paths
 
+def procesar_archivo(archivo, regex_pattern, user_id, columnas, columna_separacion, column_order=None):
     ruta_raiz = 'Limpiados'
     ruta_usuario = os.path.join(ruta_raiz, user_id)
     
@@ -59,44 +66,65 @@ def procesar_archivo(archivo, regex_pattern, user_id):
         if col not in df.columns:
             df[col] = '0'
 
-    # Continuar con el procesamiento como antes
     for _, row in df.iterrows():
-        valores_separados = separar_numeros(str(row.get('OV', '')), regex_pattern)
+        valores_separados = separar_numeros(str(row.get(columna_separacion, '')), regex_pattern)
 
         if not valores_separados:
             nueva_fila = row.copy()
-            nueva_fila['OV LIMPIO'] = row.get('OV', '')
+            nueva_fila[columna_separacion + ' LIMPIO'] = row.get(columna_separacion, '')
             nuevas_filas.append(nueva_fila)
         else:
             for i, valor in enumerate(valores_separados):
                 nueva_fila = row.copy()
-                nueva_fila['OV'] = valor
-                nueva_fila['OV LIMPIO'] = limpiar_ov(valor)
+                nueva_fila[columna_separacion] = valor
+                nueva_fila[columna_separacion + ' LIMPIO'] = limpiar_ov(valor)
 
-                # Verificar si estamos en la primera fila y el valor aún no se ha llenado
                 if i != 0:
-                    nueva_fila[columnas] = ''
+                    for col in columnas:
+                        nueva_fila[col] = ''
                 
                 nuevas_filas.append(nueva_fila)
 
-    df_extendido = pd.DataFrame(nuevas_filas, columns=column_order)
-    
-    # Guardar el archivo en la carpeta del usuario
-    output_path = os.path.join(ruta_usuario, f'limpiado_{user_id}.xlsx')
-    df_extendido.to_excel(output_path, index=False)
+    df_extendido = pd.DataFrame(nuevas_filas)
 
-    # Obtener el nombre original del archivo sin la ruta
-    nombre_archivo = os.path.basename(archivo)
+    if column_order:
+        df_extendido = df_extendido[column_order]
     
-    # Generar el nombre del archivo de salida
-    output_path = os.path.join(ruta_usuario, f'limpiado_{nombre_archivo}')
-    
+    # Guardar el DataFrame en un archivo Excel
+    output_path = os.path.join(ruta_usuario, f"procesado_{os.path.basename(archivo)}")
     df_extendido.to_excel(output_path, index=False)
 
     return output_path
 
-# Función para limpiar los archivos detalles de Netcracker
-def limpiar_detalle(archivo, user_id):
+def cargar_archivos_limpiar(archivos_base, user_id):
+    ruta_temporal = 'Limpiados'
+    ruta_usuario = os.path.join(ruta_temporal, user_id)
+
+    if not os.path.exists(ruta_usuario):
+        os.makedirs(ruta_usuario)
+
+    headers = []  # Lista para almacenar los encabezados del Archivo Base
+    saved_files_base = []
+
+    for archivo_base in archivos_base:
+        try:
+            file_path = archivo_base
+            saved_files_base.append(file_path)
+            # Leer solo los encabezados del archivo con openpyxl
+            wb = load_workbook(filename=file_path, read_only=True)
+            ws = wb.active
+            headers.append([cell.value for cell in ws[1]])
+
+        except Exception as e:
+            print(f'Error al procesar el archivo {archivo_base}: {e}')
+
+    return saved_files_base, headers
+
+
+# SECCIÓN DE FUNCIONES PARA EL CASO DE LIMPIAR ARCHIVOS DETALLADOS, CSV EN BASE A TUBO O COMAS.
+
+def limpiar_detalle(archivo, modo_seleccionado, user_id):
+    start_time = time.time() 
     ruta_temporal = 'Detallados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
 
@@ -106,8 +134,11 @@ def limpiar_detalle(archivo, user_id):
     data = []
     max_fields = 0
     try:
+        # Determinar el delimitador basado en el modo seleccionado
+        delimiter = ',' if modo_seleccionado == 'limpiar_coma' else '|'
+
         with open(archivo, 'r', encoding='latin1') as file:
-            reader = csv.reader(file, delimiter='|')
+            reader = csv.reader(file, delimiter=delimiter)
             for row in reader:
                 data.append(row)
                 if len(row) > max_fields:
@@ -119,7 +150,11 @@ def limpiar_detalle(archivo, user_id):
                 data[i].append(None)
 
         # Convertir los datos a un DataFrame
-        df = pd.DataFrame(data)
+        if modo_seleccionado == 'limpiar_coma':
+            df = pd.DataFrame(data[1:], columns=data[0])
+        else:
+            df = pd.DataFrame(data)
+
         try: 
             df.iloc[:, 15:] = df.iloc[:, 15:].apply(pd.to_numeric, errors='coerce')
         except Exception as e:
@@ -128,8 +163,13 @@ def limpiar_detalle(archivo, user_id):
         nombre_archivo = os.path.basename(archivo)
         try: 
             # Guardar el DataFrame en un archivo Excel
-            output_file_path = os.path.join(ruta_usuario, f'Detalle_Separado_{nombre_archivo}.xlsx')
-            df.to_excel(output_file_path, index=False)
+            nombre_base, extension = os.path.splitext(nombre_archivo)
+            output_file_path = os.path.join(ruta_usuario, f'Archivo_{nombre_base}_Limpiado.xlsx')
+            df.to_excel(output_file_path, index=False, header=None)
+            end_time = time.time()  # Detener el temporizador
+            elapsed_time = end_time - start_time  # Calcular el tiempo transcurrido
+
+            print(f'El proceso tardó {elapsed_time} segundos en completarse')
             return output_file_path
         except Exception as e:
             print(f'Error al guardar el archivo: {e}')
@@ -139,7 +179,8 @@ def limpiar_detalle(archivo, user_id):
         return None
     
 
-# El cargar_archivo tiene la funcionalidad de realizar el merge sin más de los archivos subidos
+# SECCIÓN DE FUNCIONES PARA EL CASO DE CONSOLIDAR ARCHIVOS, TANTO PARA EL CASO GLOBAL, COMO PARA UN CASO ESPECÍFICO
+
 def cargar_archivo(archivos, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
@@ -173,9 +214,6 @@ def cargar_archivo(archivos, user_id):
         print(f'Error al guardar el archivo consolidado: {e}')
         return None
 
-
-    
-# Función para realizar una carga de archivos del caso 2 [Consolidar en base a una columna] de aquí obtenemos la ruta de los archivos [Posición donde fue subido] y los encabezados
 def cargar_archivos(archivos_base, archivos_combinar, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
@@ -219,8 +257,6 @@ def cargar_archivos(archivos_base, archivos_combinar, user_id):
 
     return saved_files_base, headers_base, saved_files_combinar, headers_combinar
 
-
-# Función para realizar la consolidación de archivos Base y Combinar. En base a las columnas seleccionadas por el usuario.
 def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_combinar, columnas_seleccionadas, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
