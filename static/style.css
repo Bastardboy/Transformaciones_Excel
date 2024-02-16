@@ -63,3 +63,14 @@ body {
     left: 0;
     width: 100%;
 }
+
+.select-box {
+    margin: 10px;
+}
+
+#checkbox_container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 20px;
+}

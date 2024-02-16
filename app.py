@@ -2,15 +2,15 @@ from flask import Flask, render_template, request, send_from_directory, session,
 import os
 import uuid
 from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar
-from itertools import chain
+import logging
+
+
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
 
-#SESSION_TYPE = 'filesystem'  # Almacena la sesión en el sistema de archivos
-# app.config.from_object(__name__)
-# Session(app)
-
 app.secret_key = 'tu_clave_secreta_super_secreta'  # Cambia esto a una cadena segura
+logging.info('El servidor ha iniciado')
 
 @app.route('/obtener_columnas', methods=['GET'])
 def obtener_columnas():
@@ -202,4 +202,4 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
- 
+    logging.info('El servidor ha terminado')
