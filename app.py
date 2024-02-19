@@ -5,12 +5,12 @@ from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_arc
 import logging
 
 
-logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
+#logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
 
 app.secret_key = 'tu_clave_secreta_super_secreta'  # Cambia esto a una cadena segura
-logging.info('El servidor ha iniciado')
+#logging.info('El servidor ha iniciado')
 
 @app.route('/obtener_columnas', methods=['GET'])
 def obtener_columnas():
@@ -85,7 +85,7 @@ def limpiar():
         session['rutas_archivos'] = rutas_archivos
         session['regex_pattern'] = regex_pattern
         session['archivos_con_encabezados'] = archivos_con_encabezados
-        return render_template('limpiar2.html', output_paths=output_paths, regex_pattern=regex_pattern, archivos_con_encabezados=archivos_con_encabezados)
+        return render_template('Limpiar2.html', output_paths=output_paths, regex_pattern=regex_pattern, archivos_con_encabezados=archivos_con_encabezados)
 
     return render_template('Limpiar.html')
 
@@ -160,32 +160,44 @@ def consolidar_columna():
 # RUTAS PARA EL PROCESO DE DETALLAR ARCHIVOS, ELIMINAR EN BASE , O |
 @app.route('/detalles', methods=['GET', 'POST'])
 def detalles():
-    # Hay que devolver las columnas, para que haga el menu desplegable
+    print("Entrando a la ruta /detalles")
     if request.method == 'POST':
+        print("Método POST detectado")
         modo_seleccionado = request.form.get('modo_seleccionado_detalle')
+        print(f"Modo seleccionado: {modo_seleccionado}")
 
         if modo_seleccionado == 'limpiar_coma':
             upload_files = request.files.getlist('file1[]')
         elif modo_seleccionado == 'limpiar_tubo':
             upload_files = request.files.getlist('file2[]')
 
+        print(f"Número de archivos cargados: {len(upload_files)}")
+
         ruta_temporal = 'Detallados'
         user_id = session.get('user_id')
+        print(f"ID de usuario: {user_id}")
         output_paths = []
 
         for file in upload_files:
             file_path = os.path.join(ruta_temporal, file.filename)
+            print(f"Guardando archivo en: {file_path}")
             file.save(file_path)
 
+            print("Llamando a la función limpiar_detalle")
             output_path = limpiar_detalle(file_path, modo_seleccionado, user_id)
+            print(f"Ruta de salida: {output_path}")
             output_paths.append(output_path)
 
+            print("Eliminando archivo temporal")
             os.remove(file_path)
 
+        print("Guardando rutas de salida en la sesión")
         session['output_paths'] = output_paths
 
+        print("Renderizando plantilla result2.html")
         return render_template('result2.html', message='Archivos procesados y guardados exitosamente.', output_paths=output_paths)
 
+    print("Renderizando plantilla detalles.html")
     return render_template('detalles.html')
 
 # INICIO DE LA APLICACIÓN Y ASIGNACIÓN DE UN ID ÚNICO
@@ -202,4 +214,4 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    logging.info('El servidor ha terminado')
+    #logging.info('El servidor ha terminado')
