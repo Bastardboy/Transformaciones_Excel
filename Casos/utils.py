@@ -156,7 +156,12 @@ def limpiar_detalle(archivo, modo_seleccionado, user_id):
             df = pd.DataFrame(data)
 
         try: 
-            df.iloc[:, 15:] = df.iloc[:, 15:].apply(pd.to_numeric, errors='coerce')
+            df.iloc[:, 15:] = df.iloc[:, 15:].apply(pd.to_numeric, errors='ignore')
+                # Redondear los valores de la columna J (índice 9) a 1 decimal
+            df.iloc[:, 9] = df.iloc[:, 9].round(1)
+
+            # Convertir los valores de la columna I (índice 8) a enteros
+            df.iloc[:, 8] = df.iloc[:, 8].astype(int)
         except Exception as e:
             print(f'Error al convertir a números: {e}')
 
@@ -182,6 +187,7 @@ def limpiar_detalle(archivo, modo_seleccionado, user_id):
 # SECCIÓN DE FUNCIONES PARA EL CASO DE CONSOLIDAR ARCHIVOS, TANTO PARA EL CASO GLOBAL, COMO PARA UN CASO ESPECÍFICO
 
 def cargar_archivo(archivos, user_id):
+    print(f'Archivos recibidos: {archivos}')
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
 
@@ -189,7 +195,7 @@ def cargar_archivo(archivos, user_id):
         os.makedirs(ruta_usuario)
 
     df_final = None
-
+    
     for archivo in archivos:
         try:
             file_path = os.path.join(ruta_usuario, archivo.filename)
@@ -206,6 +212,7 @@ def cargar_archivo(archivos, user_id):
     try:
         nombre_archivo_final = f'Archivo_Consolidado.xlsx'
         ruta_archivo_final = os.path.join(ruta_usuario, nombre_archivo_final)
+        print(f'Ruta del archivo final: {ruta_archivo_final}')
         df_final.to_excel(ruta_archivo_final, index=False)
 
         return ruta_archivo_final
@@ -217,6 +224,9 @@ def cargar_archivo(archivos, user_id):
 def cargar_archivos(archivos_base, archivos_combinar, user_id):
     ruta_temporal = 'Consolidados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
+
+    print(f'archivos_base: {archivos_base}')
+    print(f'archivos_combinar: {archivos_combinar}')
 
     if not os.path.exists(ruta_usuario):
         os.makedirs(ruta_usuario)
@@ -289,7 +299,7 @@ def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_com
         # Guardar el resultado en un nuevo archivo
         resultado_path = os.path.join(ruta_usuario,  f'Consolidación_para_{nombre_archivo_base}')
         df_base.to_excel(resultado_path, index=False)
-        
+        print(f'Ruta del archivo final: {resultado_path}')
         end_time = time.time()
         print(f'Tiempo de ejecución para el merge: {end_time - start_time} segundos')
         return resultado_path

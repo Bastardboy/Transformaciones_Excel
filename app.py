@@ -47,9 +47,12 @@ def detallados(user_id, filename):
 
 @app.route('/consolidados/<user_id>/<filename>', methods=['GET'])
 def consolidados(user_id, filename):
+    
     ruta_consolidados = os.path.join('Consolidados', user_id)
 
     try:
+        print(f'ID de usuario que se obtiene dentro de la función Consolidados: {user_id}')
+
         return send_from_directory(ruta_consolidados, filename, as_attachment=True)
     except FileNotFoundError:
         abort(404)
@@ -120,12 +123,14 @@ def consolidar():
             upload_filas_consolidar = request.files.getlist('file3[]')
             user_id = session.get('user_id')
             output_paths= []
-        
-            consolidar_sin_columnas = cargar_archivo(upload_filas_consolidar, user_id) 
+            print(f'Archivos subidos: {upload_filas_consolidar}')
 
+            consolidar_sin_columnas = cargar_archivo(upload_filas_consolidar, user_id)
             output_paths.append(consolidar_sin_columnas)
+            print(f'ID de usuario que se obtiene dentro de la función Consolidados: {user_id}')
+            print(f'rutas de salida: {output_paths}')
 
-            return render_template('result3.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_paths)
+            return render_template('result4.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_paths[0])
             
         elif modo_seleccionado == 'concatenar_por_columnas':
             uploaded_files_base = request.files.getlist('file4[]')
@@ -134,6 +139,8 @@ def consolidar():
             saved_files_base, headers_base, saved_files_combinar, headers_combinar = cargar_archivos(
                 uploaded_files_base, uploaded_files_combinar, user_id)
             
+            session['archivo_base'] = saved_files_base
+            session['archivo_combinar'] = saved_files_combinar
             session['columnas_combinar'] = headers_combinar
             return render_template('consolidacion2.html', saved_files_base=saved_files_base, saved_files_combinar=saved_files_combinar, headers_base=headers_base, headers_combinar=headers_combinar)
         
@@ -147,14 +154,15 @@ def consolidar_columna():
 
     saved_files_base = session.get('archivo_base')[0]
     saved_files_combinar = session.get('archivo_combinar')
+    print(f'Archivo Base subido: {saved_files_base}')
+    print(f'Archivo a combinar subido: {saved_files_combinar}')
 
     columnas_seleccionadas = request.form.getlist('columnas_seleccionadas')
 
     saved_files_base = saved_files_base.replace("\\", "/")
-
-    # Llama a la función consolidar_archivos para manejar la consolidación
-    output_path = consolidar_archivos(saved_files_base,  saved_files_combinar, headers_base, headers_combinar, columnas_seleccionadas, user_id)
-
+    
+    output_path = consolidar_archivos(saved_files_base, saved_files_combinar, headers_base, headers_combinar, columnas_seleccionadas, user_id)
+    print(f'ruta de salida: {output_path}')
     return render_template('result3.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_path)
 
 # RUTAS PARA EL PROCESO DE DETALLAR ARCHIVOS, ELIMINAR EN BASE , O |
@@ -205,7 +213,7 @@ def detalles():
 def index():
 
     user_id = session.get('user_id')
-
+    print(f'ID de usuario: {user_id}')
     if user_id is None:
         user_id = str(uuid.uuid4())  # Genera un nuevo UUID
         session['user_id'] = user_id
