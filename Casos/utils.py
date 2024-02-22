@@ -40,6 +40,8 @@ def limpiar_carpeta_static():
 # SECCIÓN DE FUNCIONES PARA EL CASO DE LIMPIAR ARCHIVOS EN BASE A UNA CADENA REGEX
 
 def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_seleccionada, user_id, columna_orden=None):
+    start_time = time.time()  # Iniciar el temporizador
+
     output_paths = []
     for archivo in archivos:
         columna_sel = columna_seleccionada.get(archivo)
@@ -48,6 +50,12 @@ def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_selecc
             output_path = procesar_archivo(archivo, regex_pattern, user_id, columns, columna_sel, columna_orden)
             print(f"Ruta de salida: {output_path}")  # Debug: Verificar la ruta de salida
             output_paths.append(output_path)
+            os.remove(archivo)
+    
+    end_time = time.time()  # Detener el temporizador
+    elapsed_time = end_time - start_time  # Calcular el tiempo transcurrido
+    print(f'El proceso total tardó {elapsed_time} segundos en completarse')
+
     print(f'Output paths: {output_paths}')
     return output_paths
 
@@ -60,41 +68,40 @@ def procesar_archivo(archivo, regex_pattern, user_id, columnas, columna_separaci
 
     df = pd.read_excel(archivo, header=0)
 
-    nuevas_filas = []
-
+    # Vectorizar la creación de columnas que no existen
     for col in columnas:
-        if col not in df.columns:
-            df[col] = '0'
+        df[col] = '0'
 
+    # Vectorizar la aplicación de la función separar_numeros a toda la columna
+    df[columna_separacion + '_SEPARADOS'] = df[columna_separacion].apply(lambda x: separar_numeros(str(x), regex_pattern))
+
+    # Crear nuevas filas solo para las que tienen valores separados
+    nuevas_filas = []
     for _, row in df.iterrows():
-        valores_separados = separar_numeros(str(row.get(columna_separacion, '')), regex_pattern)
-
+        valores_separados = row[columna_separacion + '_SEPARADOS']
+        
         if not valores_separados:
             nueva_fila = row.copy()
-            nueva_fila[columna_separacion + ' LIMPIO'] = row.get(columna_separacion, '')
+            nueva_fila[columna_separacion + ' LIMPIO'] = row[columna_separacion]
             nuevas_filas.append(nueva_fila)
         else:
-            for i, valor in enumerate(valores_separados):
+            for valor in valores_separados:
                 nueva_fila = row.copy()
                 nueva_fila[columna_separacion] = valor
                 nueva_fila[columna_separacion + ' LIMPIO'] = limpiar_ov(valor)
-
-                if i != 0:
-                    for col in columnas:
-                        nueva_fila[col] = ''
-                
                 nuevas_filas.append(nueva_fila)
 
     df_extendido = pd.DataFrame(nuevas_filas)
 
     if column_order:
         df_extendido = df_extendido[column_order]
-    
+
     # Guardar el DataFrame en un archivo Excel
     output_path = os.path.join(ruta_usuario, f"procesado_{os.path.basename(archivo)}")
     df_extendido.to_excel(output_path, index=False)
-
+    
     return output_path
+
 
 def cargar_archivos_limpiar(archivos_base, user_id):
     ruta_temporal = 'Limpiados'
@@ -115,8 +122,13 @@ def cargar_archivos_limpiar(archivos_base, user_id):
             ws = wb.active
             headers.append([cell.value for cell in ws[1]])
 
+        except FileNotFoundError as e:
+            print(f'Error al abrir el archivo base: {e}')
+        except PermissionError as e:
+            print(f'Error con respecto a los permisos: {e}')
         except Exception as e:
             print(f'Error al procesar el archivo {archivo_base}: {e}')
+
 
     return saved_files_base, headers
 
@@ -124,7 +136,6 @@ def cargar_archivos_limpiar(archivos_base, user_id):
 # SECCIÓN DE FUNCIONES PARA EL CASO DE LIMPIAR ARCHIVOS DETALLADOS, CSV EN BASE A TUBO O COMAS.
 
 def limpiar_detalle(archivo, modo_seleccionado, user_id):
-    start_time = time.time() 
     ruta_temporal = 'Detallados'
     ruta_usuario = os.path.join(ruta_temporal, user_id)
 
@@ -157,32 +168,30 @@ def limpiar_detalle(archivo, modo_seleccionado, user_id):
 
         try: 
             df.iloc[:, 15:] = df.iloc[:, 15:].apply(pd.to_numeric, errors='ignore')
-                # Redondear los valores de la columna J (índice 9) a 1 decimal
+            # Redondear los valores de la columna J (índice 9) a 1 decimal
             df.iloc[:, 9] = df.iloc[:, 9].round(1)
 
             # Convertir los valores de la columna I (índice 8) a enteros
             df.iloc[:, 8] = df.iloc[:, 8].astype(int)
         except Exception as e:
             print(f'Error al convertir a números: {e}')
-
+        
         nombre_archivo = os.path.basename(archivo)
         try: 
             # Guardar el DataFrame en un archivo Excel
             nombre_base, extension = os.path.splitext(nombre_archivo)
             output_file_path = os.path.join(ruta_usuario, f'Archivo_{nombre_base}_Limpiado.xlsx')
             df.to_excel(output_file_path, index=False, header=None)
-            end_time = time.time()  # Detener el temporizador
-            elapsed_time = end_time - start_time  # Calcular el tiempo transcurrido
 
-            print(f'El proceso tardó {elapsed_time} segundos en completarse')
+           
             return output_file_path
         except Exception as e:
             print(f'Error al guardar el archivo: {e}')
             return None
+
     except Exception as e:
         print(f'Error al leer el archivo: {e}')
         return None
-    
 
 # SECCIÓN DE FUNCIONES PARA EL CASO DE CONSOLIDAR ARCHIVOS, TANTO PARA EL CASO GLOBAL, COMO PARA UN CASO ESPECÍFICO
 
@@ -195,31 +204,38 @@ def cargar_archivo(archivos, user_id):
         os.makedirs(ruta_usuario)
 
     df_final = None
-    
-    for archivo in archivos:
-        try:
-            file_path = os.path.join(ruta_usuario, archivo.filename)
-            archivo.save(file_path)
-
-            # Lee el DataFrame desde el archivo y agrega a la lista
-            df_actual = pd.read_excel(file_path, header=0)
-
-            # Concatena todos los DataFrames en uno solo
-            df_final = pd.concat([df_final, df_actual])
-        except Exception as e:
-            print(f'Error al procesar el archivo {archivo.filename}: {e}')
+    archivos_temporales = []
 
     try:
+        for archivo in archivos:
+            try:
+                file_path = os.path.join(ruta_usuario, archivo.filename)
+                archivo.save(file_path)
+                archivos_temporales.append(file_path)
+
+                # Lee el DataFrame desde el archivo y agrega a la lista
+                df_actual = pd.read_excel(file_path, header=0)
+
+                # Concatena todos los DataFrames en uno solo
+                df_final = pd.concat([df_final, df_actual])
+            except Exception as e:
+                print(f'Error al procesar el archivo {archivo.filename}: {e}')
+
         nombre_archivo_final = f'Archivo_Consolidado.xlsx'
         ruta_archivo_final = os.path.join(ruta_usuario, nombre_archivo_final)
         print(f'Ruta del archivo final: {ruta_archivo_final}')
         df_final.to_excel(ruta_archivo_final, index=False)
+
+        # Borrar archivos temporales
+        for file_path in archivos_temporales:
+            os.remove(file_path)
 
         return ruta_archivo_final
 
     except Exception as e:
         print(f'Error al guardar el archivo consolidado: {e}')
         return None
+
 
 def cargar_archivos(archivos_base, archivos_combinar, user_id):
     ruta_temporal = 'Consolidados'
