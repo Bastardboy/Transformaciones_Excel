@@ -60,6 +60,7 @@ def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_selecc
     return output_paths
 
 def procesar_archivo(archivo, regex_pattern, user_id, columnas, columna_separacion, column_order=None):
+
     ruta_raiz = 'Limpiados'
     ruta_usuario = os.path.join(ruta_raiz, user_id)
     
@@ -68,38 +69,43 @@ def procesar_archivo(archivo, regex_pattern, user_id, columnas, columna_separaci
 
     df = pd.read_excel(archivo, header=0)
 
-    # Vectorizar la creación de columnas que no existen
-    for col in columnas:
-        df[col] = '0'
-
-    # Vectorizar la aplicación de la función separar_numeros a toda la columna
-    df[columna_separacion + '_SEPARADOS'] = df[columna_separacion].apply(lambda x: separar_numeros(str(x), regex_pattern))
-
-    # Crear nuevas filas solo para las que tienen valores separados
     nuevas_filas = []
+    # Tiempo de Procesamiento
+    for col in columnas:
+        if col not in df.columns:
+            df[col] = '0'
+
     for _, row in df.iterrows():
-        valores_separados = row[columna_separacion + '_SEPARADOS']
-        
+        valores_separados = separar_numeros(str(row.get(columna_separacion, '')), regex_pattern)
+
         if not valores_separados:
             nueva_fila = row.copy()
-            nueva_fila[columna_separacion + ' LIMPIO'] = row[columna_separacion]
+            nueva_fila[columna_separacion + ' LIMPIO'] = row.get(columna_separacion, '')
             nuevas_filas.append(nueva_fila)
         else:
-            for valor in valores_separados:
+            for i, valor in enumerate(valores_separados):
                 nueva_fila = row.copy()
                 nueva_fila[columna_separacion] = valor
                 nueva_fila[columna_separacion + ' LIMPIO'] = limpiar_ov(valor)
+
+                if i != 0:
+                    for col in columnas:
+                        nueva_fila[col] = ''
+                
                 nuevas_filas.append(nueva_fila)
 
     df_extendido = pd.DataFrame(nuevas_filas)
 
     if column_order:
         df_extendido = df_extendido[column_order]
-
+    
     # Guardar el DataFrame en un archivo Excel
     output_path = os.path.join(ruta_usuario, f"procesado_{os.path.basename(archivo)}")
     df_extendido.to_excel(output_path, index=False)
-    
+
+    if os.path.exists(output_path):
+        os.remove(archivo)
+
     return output_path
 
 
