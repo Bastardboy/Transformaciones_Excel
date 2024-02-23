@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify, logging
+from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify
 import os
 import uuid
 from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar
@@ -211,14 +211,13 @@ def detalles():
 # INICIO DE LA APLICACIÓN Y ASIGNACIÓN DE UN ID ÚNICO
 @app.route('/')
 def index():
-
     user_id = session.get('user_id')
     print(f'ID de usuario: {user_id}')
     if user_id is None:
         user_id = str(uuid.uuid4())  # Genera un nuevo UUID
         session['user_id'] = user_id
-    else:
-        return render_template('index.html')
+    # Devuelve la respuesta en todos los casos
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='8080')
