@@ -25,22 +25,10 @@ def limpiar_ov(valor):
     else:
         return valor
 
-# Función para limpiar la carpeta static de archivos basura
-def limpiar_carpeta_static():
-    ruta_temporal = 'Limpiados'
-    for archivo in os.listdir(ruta_temporal):
-        file_path = os.path.join(ruta_temporal, archivo)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-        except Exception as e:
-            print(f"No se pudo eliminar {file_path}. Error: {e}")
-
 
 # SECCIÓN DE FUNCIONES PARA EL CASO DE LIMPIAR ARCHIVOS EN BASE A UNA CADENA REGEX
 
 def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_seleccionada, user_id, columna_orden=None):
-    start_time = time.time()  # Iniciar el temporizador
 
     output_paths = []
     for archivo in archivos:
@@ -50,12 +38,11 @@ def procesar_multiples_archivos(archivos, regex_pattern, columns, columna_selecc
             output_path = procesar_archivo(archivo, regex_pattern, user_id, columns, columna_sel, columna_orden)
             print(f"Ruta de salida: {output_path}")  # Debug: Verificar la ruta de salida
             output_paths.append(output_path)
+        # Eliminar todos los archivos procesados
+    for archivo in archivos:
+        if os.path.exists(archivo):
             os.remove(archivo)
-    
-    end_time = time.time()  # Detener el temporizador
-    elapsed_time = end_time - start_time  # Calcular el tiempo transcurrido
-    print(f'El proceso total tardó {elapsed_time} segundos en completarse')
-
+            
     print(f'Output paths: {output_paths}')
     return output_paths
 
@@ -102,9 +89,6 @@ def procesar_archivo(archivo, regex_pattern, user_id, columnas, columna_separaci
     # Guardar el DataFrame en un archivo Excel
     output_path = os.path.join(ruta_usuario, f"procesado_{os.path.basename(archivo)}")
     df_extendido.to_excel(output_path, index=False)
-
-    if os.path.exists(output_path):
-        os.remove(archivo)
 
     return output_path
 
