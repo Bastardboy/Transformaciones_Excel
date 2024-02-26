@@ -266,8 +266,8 @@ def descargar_desde_numeros_de_folio():
                 # Existen 2 links. Primero el del Seba, pero está caido por lo que se obtiene la respuesta
                 # El segundo es uno de netcracker, pero no posee facturas (?) Porbar más tarde.
                 
-                #enlace = f'http://soaoci2.grupogtd.com/DTEPlus/getFactura.jsp?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
-                enlace = f'http://10.1.202.174:8080/DTEPlus/getFactura.action?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
+                enlace = f'http://soaoci2.grupogtd.com/DTEPlus/getFactura.jsp?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
+                #enlace = f'http://10.1.202.174:8080/DTEPlus/getFactura.action?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
 
                 nombre_archivo = f'{nombre_empresa}_{folio}.pdf'
                 ruta_destino = os.path.join(directorio_usuario, nombre_archivo)
