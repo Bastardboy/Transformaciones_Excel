@@ -1,14 +1,16 @@
-from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify
+from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify, make_response
 import os
 import uuid
-from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar
-import logging
+import requests
+from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar, validar_pdf
+
 
 
 #logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
-
+UPLOAD_FOLDER = 'Folios'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = 'tu_clave_secreta_super_secreta'  # Cambia esto a una cadena segura
 #logging.info('El servidor ha iniciado')
 
@@ -162,8 +164,10 @@ def consolidar_columna():
     saved_files_base = saved_files_base.replace("\\", "/")
     
     output_path = consolidar_archivos(saved_files_base, saved_files_combinar, headers_base, headers_combinar, columnas_seleccionadas, user_id)
+
     print(f'ruta de salida: {output_path}')
     return render_template('result3.html', message='Archivo Consolidado y guardado con éxito', output_paths=output_path)
+
 
 # RUTAS PARA EL PROCESO DE DETALLAR ARCHIVOS, ELIMINAR EN BASE , O |
 @app.route('/detalles', methods=['GET', 'POST'])
@@ -208,6 +212,101 @@ def detalles():
     print("Renderizando plantilla detalles.html")
     return render_template('detalles.html')
 
+
+@app.route('/descargas/<nombre_archivo>', methods=['GET'])
+def servir_archivo(nombre_archivo):
+    # Construir la ruta del archivo en la carpeta del usuario
+    ruta_archivo = os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id']), nombre_archivo)
+
+    # Verificar si el archivo existe
+    if not os.path.exists(ruta_archivo):
+        return make_response("Archivo no encontrado", 404)
+
+    # Enviar el archivo al usuario como descarga
+    return make_response(send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id'])), nombre_archivo, as_attachment=True, mimetype='application/pdf'))
+
+
+@app.route('/buscar', methods=['GET','POST'])
+def folios():
+    return render_template('folios.html')
+
+@app.route('/buscar_folios', methods=['GET','POST'])
+def descargar_desde_numeros_de_folio():
+    try:
+        # Obtener el ID del usuario de la sesión
+        user_id = session['user_id']
+
+        # Crear la carpeta del usuario si no existe
+        directorio_usuario = os.path.join(app.config['UPLOAD_FOLDER'], str(user_id))
+        if not os.path.exists(directorio_usuario):
+            os.makedirs(directorio_usuario)
+
+        # Eliminar archivos previos solo del usuario actual
+        for archivo_previo in os.listdir(directorio_usuario):
+            ruta_archivo_previo = os.path.join(directorio_usuario, archivo_previo)
+            os.remove(ruta_archivo_previo)
+
+        data = request.json
+        print("Datos recibidos: ", data)
+
+        if 'busquedas' not in data or not isinstance(data['busquedas'], list):
+            return jsonify({"error": "El formato del JSON es incorrecto"}), 400
+
+        enlaces_descarga = []
+        enlaces_intentados = []
+        errores = []
+
+        for parametros in data['busquedas']:
+            for folio in parametros['numeros_de_folio']:
+                tipo = parametros['tipo']
+                rut = parametros['rut']
+                resolucion = parametros['resolucion']
+                nombre_empresa = parametros['nombre_empresa']
+
+                # Existen 2 links. Primero el del Seba, pero está caido por lo que se obtiene la respuesta
+                # El segundo es uno de netcracker, pero no posee facturas (?) Porbar más tarde.
+                
+                enlace = f'http://soaoci2.grupogtd.com/DTEPlus/getFactura.jsp?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
+                #enlace = f'http://10.1.202.174:8080/DTEPlus/getFactura.action?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
+
+                nombre_archivo = f'{nombre_empresa}_{folio}.pdf'
+                ruta_destino = os.path.join(directorio_usuario, nombre_archivo)
+                enlaces_intentados.append(enlace)
+
+                try:
+                    with requests.get(enlace, stream=True) as respuesta:
+                        respuesta.raise_for_status()
+
+                        if "application/pdf" in respuesta.headers.get("content-type", ""):
+                            with open(ruta_destino, 'wb') as archivo_destino:
+                                archivo_destino.write(respuesta.content)
+
+                            if validar_pdf(ruta_destino):
+                                enlace_descarga = f'/descargas/{nombre_archivo}'
+                                enlaces_descarga.append({'nombre_empresa': nombre_empresa, 'folio': folio, 'enlace_descarga': enlace_descarga})
+                                if str(folio) not in nombre_archivo:
+                                    errores.append(f"¡Advertencia! El folio {folio} no corresponde al enlace proporcionado.")
+                            else:
+                                os.remove(ruta_destino)
+                                errores.append(f"Error al validar el PDF para el folio {folio}")
+                        else:
+                            errores.append(f"El enlace {enlace} no devuelve un archivo PDF.")
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 404:
+                        errores.append(f"El recurso no se encontró para el folio {folio}")
+                    else:
+                        errores.append(f"Error al descargar {enlace}: {e}")
+                    print("Error al descargar: ", e)
+                except Exception as e:
+                    errores.append(f"Error inesperado: {e}")
+
+        mensaje_respuesta = "Descarga de los folios al servidor" + str(enlaces_intentados) if not errores else "Descargas completadas para los folios encontrados al servidor" + str(enlaces_intentados)
+        return jsonify({"mensaje": mensaje_respuesta, "enlaces_descarga": list(enlaces_descarga), "errores": errores}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {e}"}), 500
+    
+
 # INICIO DE LA APLICACIÓN Y ASIGNACIÓN DE UN ID ÚNICO
 @app.route('/')
 def index():
@@ -220,5 +319,5 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='8080')
+    app.run(debug=True)
     #logging.info('El servidor ha terminado')

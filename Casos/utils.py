@@ -4,6 +4,7 @@ import pandas as pd
 import time
 import csv
 from openpyxl import load_workbook
+from PyPDF2 import PdfReader
 
 # Función para separar los números de las OV por un regex
 def separar_numeros(s, regex_pattern):
@@ -313,3 +314,12 @@ def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_com
     except Exception as e:
         print(f'Error al consolidar archivos: {e}')
         return None
+    
+def validar_pdf(ruta_archivo):
+    try:
+        with open(ruta_archivo, 'rb') as archivo_pdf:
+            pdf_reader = PdfReader(archivo_pdf)
+            return len(pdf_reader.pages) > 0
+    except Exception as e:
+        return False
+    

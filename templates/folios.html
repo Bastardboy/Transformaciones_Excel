@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="proyecto\favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargas desde API</title>
+
+    <!-- Enlace a Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Referenciar stlye.css -->
+    <link rel="icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+
+<body class="container text-center">
+    
+    <h1 class="text-center mt-5 mb-4">Búsqueda de Folios</h1>
+
+    <div id="parametrosBusqueda" class="mb-4">
+        <!-- Los parámetros de búsqueda se agregarán aquí dinámicamente -->
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary mb-3" onclick="agregarParametroBusqueda()">Agregar Parámetro de Búsqueda</button>
+        <button id="realizarDescargasBtn" class="btn btn-success mb-3" onclick="realizarDescargas()" disabled>Realizar Búsqueda</button>
+    </div>
+
+    <div class="table-responsive">
+        <table id="resultadoDescargas" class="table table-bordered table-striped">
+            <!-- Aquí se mostrarán dinámicamente los resultados en una tabla -->
+        </table>
+    </div>
+
+    <div id="descargarTodosContainer" style="display: none;">
+        <button class="btn btn-info" onclick="descargarTodos()">Descargar Todos</button>
+    </div>
+
+    <button id="nuevaBusquedaBtn" class="btn btn-outline-secondary mt-3" onclick="nuevaBusqueda()" style="display: none;">Nueva Búsqueda</button>
+
+    <script>
+
+        document.addEventListener('paste', function (event) {
+            const target = event.target;
+            const isNumerosFolioInput = target.classList.contains('numerosFolio');
+
+            // Verificar si el evento 'paste' ocurrió en un input de números de folio
+            if (isNumerosFolioInput) {
+                // Detener el evento para evitar la acción predeterminada del pegado
+                event.preventDefault();
+
+                // Obtener el texto pegado
+                const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+
+                // Insertar el texto pegado en la posición actual del cursor
+                document.execCommand('insertText', false, pastedText);
+
+                // Llamar a la función de formateo después de que se complete el pegado
+                setTimeout(function () {
+                    const indice = target.id.split('_')[1];
+                    formatearNumerosFolio(indice);
+                }, 0);
+            }
+        });
+
+        let indiceBusqueda = 0;  // Variable para mantener un índice único para cada búsqueda
+    
+        function agregarParametroBusqueda() {
+            // Limpia los enlaces previos al agregar un nuevo parámetro de búsqueda
+            limpiarResultados();
+
+            const parametrosDiv = document.getElementById('parametrosBusqueda');
+            const nuevoParametro = document.createElement('div');
+            const i = indiceBusqueda++;
+
+            nuevoParametro.innerHTML = `
+                <hr>
+                <label for="nombreEmpresa">Nombre de la Empresa:</label>
+                <input id="nombreEmpresa_${i}" type="text" class="nombreEmpresa form-control" placeholder="Ingrese Nombre Empresa" oninput="verificarCamposCompletos(${i})">
+                
+                <div id="parametro_${i}_campo4" style="display: none;">
+                    <label for="rut">Empresa Facturadora:</label>
+                    <select id="rut_${i}" class="rut form-control" onchange="actualizarResolucion(${i}); verificarCamposCompletos(${i})">
+                        <option value="" selected disabled>Seleccionar RUT</option>
+                        <option value="88983600">GTD TELEDUCTOS S.A.</option>
+                        <option value="96721280">GTD TELESAT S.A.</option>
+                        <option value="90299000">TELSUR</option>
+                        <option value="93737000">GTD MANQUEHUE</option>
+                        <option value="92047000">TELCOY</option>
+                        <!-- Agrega más opciones según tus necesidades -->
+                    </select>
+                </div>
+
+                <div id="parametro_${i}_campo3" style="display: none;">
+                    <label for="tipo">Tipo de Documento:</label>
+                    <select id="tipo_${i}" class="tipo form-control" onchange="actualizarResolucion(${i}); verificarCamposCompletos(${i})">
+                        <option value="" selected disabled>Seleccionar Tipo</option>
+                        <option value="33">Factura Electronica</option>
+                        <option value="61">Nota de Credito</option>
+                        <!-- Agrega más opciones según tus necesidades -->
+                    </select>
+                </div>
+
+                <div id="parametro_${i}_campo2" style="display: none;">
+                    <label for="numerosFolio">Números de Folio:</label>
+                    <input id="numerosFolio_${i}" pattern="[0-9,\s]{8,12}" class="numerosFolio form-control" placeholder="Ingrese Folios" oninput="verificarCamposCompletos(${i}); formatearNumerosFolio(${i})">
+                </div>
+
+                <label id="resolucion_${i}" class="resolucion oculto" for="resolucion">Resolución:</label>
+                <p id="resolucion_${i}" class="resolucion oculto">0</p>`;
+
+            nuevoParametro.classList.add('nuevoParametro');
+            parametrosDiv.appendChild(nuevoParametro);
+
+            // Ocultar el botón de nueva búsqueda al agregar un nuevo parámetro
+            const nuevaBusquedaBtn = document.getElementById('nuevaBusquedaBtn');
+            nuevaBusquedaBtn.style.display = 'none';
+        }
+    
+        function realizarDescargas() {
+            // Limpia los enlaces previos al realizar descargas
+            limpiarResultados();
+    
+            const busquedas = [];
+    
+            const parametros = document.getElementsByClassName('nuevoParametro');
+    
+            for (let i = 0; i < parametros.length; i++) {
+                const nombreEmpresaId = `nombreEmpresa_${i}`
+                const numerosFolioId = `numerosFolio_${i}`;
+                const tipoId = `tipo_${i}`;
+                const rutId = `rut_${i}`;
+                const resolucionId = `resolucion_${i}`;
+    
+                const nombreEmpresa = document.getElementById(nombreEmpresaId).value;
+                const numerosFolio = document.getElementById(numerosFolioId).value;
+                const tipo = document.getElementById(tipoId).value;
+                const rut = document.getElementById(rutId).value;
+                const resolucion = document.getElementById(resolucionId).textContent;
+    
+                busquedas.push({
+                    numeros_de_folio: numerosFolio.split(',').map(num => num.trim()),
+                    tipo: tipo,
+                    rut: rut,
+                    resolucion: parseInt(resolucion),
+                    nombre_empresa: nombreEmpresa
+                });
+            }   
+
+    
+            const data = {
+                busquedas: busquedas
+            };
+
+
+            const ApiUrl = 'http://127.0.0.1:5000/buscar_folios';
+    
+            fetch(ApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta de la API:', data);
+
+    
+                    // Mostrar el resultado en la página
+                    const resultadoDescargas = document.getElementById('resultadoDescargas');
+    
+                    if (data.enlaces_descarga && Array.isArray(data.enlaces_descarga) && data.enlaces_descarga.length > 0) {
+                        // Mostrar resultados en una tabla
+                        mostrarResultadosEnTabla(data.enlaces_descarga, data.errores);
+    
+                        // Mostrar el botón "Descargar Todos"
+                        const descargarTodosContainer = document.getElementById('descargarTodosContainer');
+                        descargarTodosContainer.style.display = 'block';
+    
+                        // Mostrar el botón "Nueva Búsqueda"
+                        const nuevaBusquedaBtn = document.getElementById('nuevaBusquedaBtn');
+                        nuevaBusquedaBtn.style.display = 'block';
+
+                        
+                    } else {
+                        resultadoDescargas.innerHTML += '<p>No se encontraron resultados para las búsquedas.</p>';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error al realizar la solicitud:', error);
+                })
+            }
+    
+        function mostrarResultadosEnTabla(enlacesDescarga, errores) {
+            const resultadoDescargas = document.getElementById('resultadoDescargas');
+            const table = document.createElement('table');
+            table.classList.add('table', 'table-bordered', 'table-striped');
+    
+            // Encabezado de la tabla
+            const headerRow = table.insertRow(0);
+            const headerCell1 = headerRow.insertCell(0);
+            const headerCell2 = headerRow.insertCell(1);
+            headerCell1.innerHTML = '<b>Folio</b>';
+            headerCell2.innerHTML = '<b>Enlace de Descarga</b>';
+    
+            // Cuerpo de la tabla
+            for (let i = 0; i < enlacesDescarga.length; i++) {
+                const enlace = enlacesDescarga[i];
+    
+                if (enlace) {
+                    const row = table.insertRow(-1);
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+    
+                    // Utiliza directamente 'enlace.folio' para obtener el nombre del folio
+                    cell1.innerHTML = `<b>${enlace.folio}</b>`; // Agrega el número de folio en negrita
+                    cell2.innerHTML = `<a href="${enlace.enlace_descarga}" download target="_blank">${enlace.folio}.pdf</a>`;
+                }
+            }
+    
+            // Mostrar errores, si los hay
+            if (errores && Array.isArray(errores) && errores.length > 0) {
+                resultadoDescargas.innerHTML += '<p>Errores:</p>';
+                for (let i = 0; i < errores.length; i++) {
+                    resultadoDescargas.innerHTML += `<p>${errores[i]}</p>`;
+                }
+            }
+    
+            // Mostrar mensaje si no hay enlaces de descarga
+            if (!table.rows.length) {
+                resultadoDescargas.innerHTML += '<p>No se encontraron resultados para las búsquedas.</p>';
+            } else {
+                // Agregar tabla al contenedor solo si hay enlaces de descarga
+                resultadoDescargas.appendChild(table);
+            }
+        }
+    
+        async function descargarTodos() {
+            const enlacesDescarga = document.querySelectorAll('#resultadoDescargas a');
+            
+            // Iterar sobre cada enlace de descarga con un retraso de 1 segundo
+            for (const enlace of enlacesDescarga) {
+                await descargarConRetraso(enlace.href, enlace.download);
+                await esperar(1000); // Esperar 1 segundo antes de la próxima descarga
+            }
+        }
+
+        async function descargarConRetraso(href, download) {
+            const link = document.createElement('a');
+            link.href = href;
+            link.download = download;
+            link.target = '_blank';
+
+            // Simular clic asíncrono para iniciar la descarga
+            await new Promise((resolve) => {
+                link.addEventListener('click', resolve);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function esperar(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function limpiarResultados() {
+            // Limpia el contenido del contenedor de resultados
+            const resultadoDescargas = document.getElementById('resultadoDescargas');
+            resultadoDescargas.innerHTML = '';
+    
+            // Oculta el botón "Descargar Todos" y "Nueva Búsqueda"
+            const descargarTodosContainer = document.getElementById('descargarTodosContainer');
+            const nuevaBusquedaBtn = document.getElementById('nuevaBusquedaBtn');
+            descargarTodosContainer.style.display = 'none';
+            nuevaBusquedaBtn.style.display = 'none';
+        }
+    
+        function nuevaBusqueda() {
+            // Limpia los resultados y oculta los botones al realizar una nueva búsqueda
+            limpiarResultados();
+            
+            // Limpia los parámetros de búsqueda anteriores
+            const parametrosDiv = document.getElementById('parametrosBusqueda');
+            parametrosDiv.innerHTML = '';
+    
+            // Ocultar el botón "Nueva Búsqueda"
+            const nuevaBusquedaBtn = document.getElementById('nuevaBusquedaBtn');
+            nuevaBusquedaBtn.style.display = 'none';
+    
+            // Restablecer el índice de búsqueda
+            indiceBusqueda = 0;
+
+            // Deshabilitar el botón de "Realizar Búsqueda" después de limpiar
+            const realizarDescargasBtn = document.getElementById('realizarDescargasBtn');
+            realizarDescargasBtn.disabled = true;
+        }
+    
+        function actualizarResolucion(indice) {
+            const rutSeleccionado = document.getElementById(`rut_${indice}`).value;
+    
+            let resolucion;
+    
+            if (rutSeleccionado === '88983600') {
+                resolucion = 88;
+            } else if (rutSeleccionado === '96721280') {
+                resolucion = 146;
+            } else if (rutSeleccionado === '90299000') {
+                resolucion = 1;
+            } else if (rutSeleccionado === '92047000') {
+                resolucion = 0;
+            } else if (rutSeleccionado === '93737000') {
+                resolucion = 22;
+            } else {
+                resolucion = 0; // Valor por defecto o lógica adicional según tus necesidades
+            }
+    
+            // Actualizar el valor del elemento HTML para mostrar la resolución
+            document.getElementById(`resolucion_${indice}`).textContent = resolucion;
+
+            //verificarCamposCompletos();
+        }
+
+        function verificarCamposCompletos(indice) {
+            const nombreEmpresaInput = document.getElementById(`nombreEmpresa_${indice}`);
+            const nombreEmpresa = nombreEmpresaInput.value.trim();
+            const rutInput = document.getElementById(`rut_${indice}`);
+            const tipoInput = document.getElementById(`tipo_${indice}`);
+            const numerosFolioInput = document.getElementById(`numerosFolio_${indice}`);
+
+            // Si se borra el dato del campo "Nombre de Empresa", limpiar y ocultar los otros campos
+            if (!nombreEmpresa) {
+                limpiarCampos(indice);
+                return false;
+            }
+
+            const rut = rutInput.value;
+            const tipo = tipoInput.value;
+            const numerosFolio = numerosFolioInput.value;
+
+            const camposCompletos = nombreEmpresa || rut || tipo || numerosFolio.length > 0;
+
+            // Obtén el botón "Realizar Búsqueda"
+            const realizarDescargasBtn = document.getElementById('realizarDescargasBtn');
+
+            // Habilitar o deshabilitar el botón de "Realizar Búsqueda" según la condición
+            realizarDescargasBtn.disabled = !camposCompletos;
+
+            // Mostrar u ocultar Campo 2 según si el Campo 1 tiene algún valor
+            const campo4Container = document.getElementById(`parametro_${indice}_campo4`);
+            campo4Container.style.display = nombreEmpresa ? 'block' : 'none';
+
+            // Mostrar u ocultar Campo 3 según si el Campo 2 tiene algún valor
+            const campo3Container = document.getElementById(`parametro_${indice}_campo3`);
+            campo3Container.style.display = rut ? 'block' : 'none';
+
+            // Mostrar u ocultar Campo 4 según si el Campo 3 tiene algún valor
+            const campo2Container = document.getElementById(`parametro_${indice}_campo2`);
+            campo2Container.style.display = tipo ? 'block' : 'none';
+
+            return camposCompletos;
+        }
+
+
+        function limpiarCampos(indice) {
+            const rutInput = document.getElementById(`rut_${indice}`);
+            const tipoInput = document.getElementById(`tipo_${indice}`);
+            const numerosFolioInput = document.getElementById(`numerosFolio_${indice}`);
+
+            // Limpiar valores de los campos
+            rutInput.value = '';
+            tipoInput.value = '';
+            numerosFolioInput.value = '';
+
+            // Ocultar los campos
+            const campo4Container = document.getElementById(`parametro_${indice}_campo4`);
+            campo4Container.style.display = 'none';
+
+            const campo3Container = document.getElementById(`parametro_${indice}_campo3`);
+            campo3Container.style.display = 'none';
+
+            const campo2Container = document.getElementById(`parametro_${indice}_campo2`);
+            campo2Container.style.display = 'none';
+
+            // Deshabilitar el botón de "Realizar Búsqueda"
+            const realizarDescargasBtn = document.getElementById('realizarDescargasBtn');
+            realizarDescargasBtn.disabled = true;
+
+            // Limpiar los resultados anteriores
+            limpiarResultados();
+        }
+
+        function formatearNumerosFolio(indice) {
+            const numerosFolioInput = document.getElementById(`numerosFolio_${indice}`);
+            const numerosFolio = numerosFolioInput.value;
+
+            // Reemplaza espacios con comas
+            const numerosFolioFormateados = numerosFolio.replace(/\s+/g, ', ');
+
+            // Elimina espacios adicionales después de la sustitución
+            const numerosFolioFinal = numerosFolioFormateados.replace(/,\s*,/g, ',');
+
+            // Actualiza el valor del campo con los números de folio formateados
+            numerosFolioInput.value = numerosFolioFinal;
+
+            // Continúa con la verificación de campos completos
+            verificarCamposCompletos(indice);
+        }
+        
+    </script>
+
+    <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   
+    <div class="footer">
+        <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+        <p>&copy; 2024 Procesador de Archivos Excel</p>
+    </div>
+
+    </body>
+
+</html>

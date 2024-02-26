@@ -12,6 +12,12 @@
     display: inline-block;
 }
 
+.btn-red{
+    background-color: #d07673;
+    color: white;
+
+}
+
 .btn-yellow{
     background-color: #eda215;
     color: white;
@@ -73,4 +79,21 @@ body {
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 20px;
+}
+
+
+.oculto {
+    position: absolute;
+    left: -9999em;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.nombreEmpresa,
+.numerosFolio,
+.tipo,
+.rut {
+    text-align: center; /* Centrar el texto en los campos de entrada */
+    margin: auto 0;
 }

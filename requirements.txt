@@ -31,3 +31,5 @@ fsspec==2021.7.0
 openpyxl==3.0.10
 spacy==3.2.1
 flask-Session==0.4.0
+PyMuPDF==1.18.10
+PyPDF2==3.0.1
