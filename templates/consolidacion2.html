@@ -61,16 +61,13 @@
 
     <!-- Enlace a FontAwesome para Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-
     <script>
-        // Inicializar tooltips de Bootstrap
         document.addEventListener('DOMContentLoaded', function () {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
-
-            // Mostrar dinámicamente las casillas de selección al cambiar el encabezado_combinar
+    
             document.getElementById('encabezados_combinar').addEventListener('change', function () {
                 var selectedHeader = this.value;
                 if (selectedHeader) {
@@ -79,65 +76,84 @@
                     ocultarCasillasSeleccion();
                 }
             });
-
-            // Función para mostrar casillas de selección
+    
             function mostrarCasillasSeleccion(selectedHeader) {
                 var checkboxContainer = document.getElementById('checkbox_container');
-                checkboxContainer.innerHTML = '';  // Limpiar cualquier contenido existente
-
-                // Obtener columnas asociadas al encabezado seleccionado
+                checkboxContainer.innerHTML = '';
+    
                 fetch('/obtener_columnas?encabezado=' + encodeURIComponent(selectedHeader))
                     .then(response => response.json())
                     .then(data => {
-                        var columnas = data.columnas_combinar;  // Asegúrate de que tu servidor devuelva un objeto JSON con una propiedad 'columnas'
-
-                        // Crear casillas de selección
+                        var columnas = data.columnas_combinar;
+    
                         columnas.forEach(function (columna) {
                             var checkboxDiv = document.createElement('div');
                             checkboxDiv.classList.add('form-check');
-
+    
                             var checkboxInput = document.createElement('input');
                             checkboxInput.classList.add('form-check-input');
                             checkboxInput.type = 'checkbox';
                             checkboxInput.name = 'columnas_seleccionadas';
                             checkboxInput.value = columna;
                             checkboxInput.id = columna;
-
+    
                             var checkboxLabel = document.createElement('label');
                             checkboxLabel.classList.add('form-check-label');
                             checkboxLabel.htmlFor = columna;
                             checkboxLabel.textContent = columna;
-
+    
                             checkboxDiv.appendChild(checkboxInput);
                             checkboxDiv.appendChild(checkboxLabel);
-
+    
                             checkboxContainer.appendChild(checkboxDiv);
                         });
-
-                        // Mostrar la sección de casillas de selección
+    
                         document.getElementById('columnas_seleccionadas').style.display = 'block';
                     })
                     .catch(error => console.error('Error:', error));
             }
-
-            // Función para ocultar casillas de selección
+    
             function ocultarCasillasSeleccion() {
                 document.getElementById('columnas_seleccionadas').style.display = 'none';
             }
+    
             document.getElementById('cargar_btn').addEventListener('click', function (event) {
-            var checkboxes = document.querySelectorAll('input[name="columnas_seleccionadas"]:checked');
-            if (checkboxes.length === 0) {
-                event.preventDefault();
-                alert('Por favor, selecciona al menos una columna para agregar al excel consolidado.');
-            } else {
-                document.getElementById('form_concatenar_las_columnas').submit();
-            }
-        });
+                var checkboxes = document.querySelectorAll('input[name="columnas_seleccionadas"]:checked');
+                if (checkboxes.length === 0) {
+                    event.preventDefault();
+                    alert('Por favor, selecciona al menos una columna para agregar al excel consolidado.');
+                } else {
+                    // Deshabilitar los campos después de la validación
+                    var encabezadosBase = document.getElementById('encabezados_base');
+                    var encabezadosCombinar = document.getElementById('encabezados_combinar');
+                    
+                    if (encabezadosBase.value && encabezadosCombinar.value) {
+                        var inputs = document.querySelectorAll('input, select');
+                        for (var i = 0; i < inputs.length; i++) {
+                            inputs[i].disabled = true;
+                        }
+                        document.getElementById('form_concatenar_las_columnas').submit();
+                    } else {
+                        event.preventDefault();
+                        alert('Por favor, selecciona ambas columnas y al menos una columna para agregar al excel consolidado.');
+                    }
+                }
+            });
+    
+            document.getElementById('toggle_checkbox_btn').addEventListener('click', function () {
+                var checkboxContainer = document.getElementById('columnas_seleccionadas');
+                if (checkboxContainer.style.display === 'none') {
+                    checkboxContainer.style.display = 'block';
+                } else {
+                    checkboxContainer.style.display = 'none';
+                }
+            });
         });
     </script>
 
     <div class="footer">
         <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+        <button type="button" class="btn btn-secondary mb-3" id="toggle_checkbox_btn">Mostrar/Ocultar Casillas</button>
         <p>&copy; 2024 Procesador de Archivos Excel</p>
     </div>
 </body>

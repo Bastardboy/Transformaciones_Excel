@@ -43,7 +43,7 @@
                     <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
                     </i>
-                    <input type="file" name="file3[]" class="form-control" multiple>
+                    <input type="file" name="file3[]" class="form-control" multiple onchange="checkFiles(this)">
                     <input type="hidden" name="modo_seleccionado" id="modo_seleccionado">
                     <button type="submit" class="btn btn-primary mt-2" id="Cargar">Cargar</button>
                 </div>
@@ -60,14 +60,14 @@
                     <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="El archivo base es sobre el cual quiere realizar la búsqueda, y debe tener formato xlsx">
                     </i>
-                    <input type="file" name="file4[]" class="form-control" multiple>
+                    <input type="file" name="file4[]" class="form-control" multiple onchange="checkFiles(this)">
 
                     <label for="file_combinar" class="form-label">Cargue sus archivos a combinar:</label>
                     <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Los archivos a combinar deben tener por lo menos un campo en común, y deben tener formato xlsx">
                     </i>
-                    <input type="file" name="file5[]" class="form-control" multiple>
-                    <button type="submit" class="btn btn-primary mt-2" id="Cargar" onclick="">Cargar</button>
+                    <input type="file" name="file5[]" class="form-control" multiple onchange="checkFiles(this)">
+                    <button type="submit" class="btn btn-primary mt-2" id="Cargar" disabled>Cargar</button>
                 </div>
 
             </form>
@@ -99,6 +99,21 @@
                 document.getElementById('form_concatenar_archivos').style.display = 'none';
                 document.getElementById('form_concatenar_por_columnas').style.display = 'block';
             }
+        }
+
+        function checkFiles(input) {
+            var form = input.parentElement.parentElement;
+            var inputs = form.querySelectorAll('input[type="file"]');
+            var button = form.querySelector('button');
+            
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].files.length == 0) {
+                    button.disabled = true;
+                    return;
+                }
+            }
+            
+            button.disabled = false;
         }
 
     </script>
