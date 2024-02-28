@@ -117,37 +117,38 @@
                 document.getElementById('columnas_seleccionadas').style.display = 'none';
             }
     
-            document.getElementById('cargar_btn').addEventListener('click', function (event) {
-                var checkboxes = document.querySelectorAll('input[name="columnas_seleccionadas"]:checked');
-                if (checkboxes.length === 0) {
-                    event.preventDefault();
-                    alert('Por favor, selecciona al menos una columna para agregar al excel consolidado.');
-                } else {
-                    // Deshabilitar los campos después de la validación
-                    var encabezadosBase = document.getElementById('encabezados_base');
-                    var encabezadosCombinar = document.getElementById('encabezados_combinar');
-                    
-                    if (encabezadosBase.value && encabezadosCombinar.value) {
-                        var inputs = document.querySelectorAll('input, select');
-                        for (var i = 0; i < inputs.length; i++) {
-                            inputs[i].disabled = true;
-                        }
-                        document.getElementById('form_concatenar_las_columnas').submit();
-                    } else {
-                        event.preventDefault();
-                        alert('Por favor, selecciona ambas columnas y al menos una columna para agregar al excel consolidado.');
-                    }
-                }
-            });
-    
-            document.getElementById('toggle_checkbox_btn').addEventListener('click', function () {
-                var checkboxContainer = document.getElementById('columnas_seleccionadas');
-                if (checkboxContainer.style.display === 'none') {
-                    checkboxContainer.style.display = 'block';
-                } else {
-                    checkboxContainer.style.display = 'none';
-                }
-            });
+        //     document.getElementById('cargar_btn').addEventListener('click', function (event) {
+        //     var checkboxes = document.querySelectorAll('input[name="columnas_seleccionadas"]:checked');
+        //     if (checkboxes.length === 0) {
+        //         event.preventDefault();
+        //         alert('Por favor, selecciona al menos una columna para agregar al excel consolidado.');
+        //     } else {
+        //         // Deshabilitar los campos después de la validación
+        //         var encabezadosBase = document.getElementById('encabezados_base');
+        //         var encabezadosCombinar = document.getElementById('encabezados_combinar');
+                
+        //         if (encabezadosBase.value && encabezadosCombinar.value) {
+        //             var inputs = document.querySelectorAll('input, select');
+        //             for (var i = 0; i < inputs.length; i++) {
+        //                 // Crear un campo oculto para cada campo deshabilitado
+        //                 var hiddenInput = document.createElement('input');
+        //                 hiddenInput.type = 'hidden';
+        //                 hiddenInput.name = inputs[i].name;
+        //                 hiddenInput.value = inputs[i].value;
+
+        //                 // Agregar el campo oculto al formulario
+        //                 document.getElementById('form_concatenar_las_columnas').appendChild(hiddenInput);
+
+        //                 // Deshabilitar el campo original
+        //                 inputs[i].disabled = true;
+        //             }
+        //             document.getElementById('form_concatenar_las_columnas').submit();
+        //         } else {
+        //             event.preventDefault();
+        //             alert('Por favor, selecciona ambas columnas y al menos una columna para agregar al excel consolidado.');
+        //         }
+        //     }
+        // });
         });
     </script>
 
