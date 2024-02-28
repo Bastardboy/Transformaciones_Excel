@@ -76,7 +76,7 @@
 }
 
 .btn-blue {
-    background-color: #4e6eaf;
+    background-color: #66799f;
     color: white;
 }
 
@@ -154,19 +154,47 @@ body {
 }
 
 
-/* Estilo para el fondo de las cartas */
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around; /* Ajusta esto según tus preferencias */
+    background-color: #ffffff; /* Fondo blanco */
+    padding: 20px; /* Espaciado interior */
+}
+
+/* Estilos para las tarjetas */
 .card {
-    background-color: #375d9d; /* Cambia el color según tus preferencias */
-    border-radius: 15px; /* Ajusta según sea necesario */
+    background-color: #375d9d;
+    border-radius: 15px;
     overflow: hidden;
     transition: transform 0.3s;
+    margin: 0 10px; /* Espaciado lateral entre tarjetas */
 }
 
 .card:hover {
     transform: scale(1.05);
 }
 
-/* Estilo para el color del texto en los títulos de las cartas */
 .card-title {
-    color: white; /* Cambia el color según tus preferencias */
+    color: white;
+}
+
+
+.footer {
+    margin-top: 20px; /* Add some space above the footer */
+    padding: 10px;
+    background-color: #f8f9fa;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.footer a {
+    margin-right: 10px;
+}
+
+.footer p {
+    font-size: 12px; /* Adjust the font size to make it smaller */
+    margin: 0;
 }
