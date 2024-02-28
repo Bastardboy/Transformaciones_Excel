@@ -374,3 +374,8 @@ def descargar_en_paralelo(parametros, directorio_usuario):
                 errores.append(result)
 
     return enlaces_descarga, errores
+
+def eliminar_archivo_despues_de_tiempo(ruta_archivo, delay):
+    time.sleep(delay)
+    if os.path.exists(ruta_archivo):
+        os.remove(ruta_archivo)

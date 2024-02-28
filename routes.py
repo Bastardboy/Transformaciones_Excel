@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, send_from_directory, session, abort, jsonify, make_response
 import os
 import uuid
-import requests
-from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar, descargar_en_paralelo
-
+from Casos.utils import procesar_multiples_archivos, limpiar_detalle, cargar_archivos, consolidar_archivos, cargar_archivo, cargar_archivos_limpiar, descargar_en_paralelo, eliminar_archivo_despues_de_tiempo
+import threading
 
 
 #logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
@@ -223,8 +222,12 @@ def servir_archivo(nombre_archivo):
         return make_response("Archivo no encontrado", 404)
 
     # Enviar el archivo al usuario como descarga
-    return make_response(send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id'])), nombre_archivo, as_attachment=True, mimetype='application/pdf'))
+    respuesta = make_response(send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id'])), nombre_archivo, as_attachment=True, mimetype='application/pdf'))
 
+    # Iniciar un nuevo hilo que eliminará el archivo después de un cierto período de tiempo
+    threading.Thread(target=eliminar_archivo_despues_de_tiempo, args=(ruta_archivo, 60)).start()
+
+    return respuesta
 
 @app.route('/buscar', methods=['GET','POST'])
 def folios():
