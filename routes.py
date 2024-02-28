@@ -311,11 +311,13 @@ def descargar_desde_numeros_de_folio():
 @app.route('/')
 def index():
     user_id = session.get('user_id')
-    print(f'ID de usuario: {user_id}')
     if user_id is None:
         user_id = str(uuid.uuid4())  # Genera un nuevo UUID
         session['user_id'] = user_id
+        print(f'ID de usuario: {user_id}')
     # Devuelve la respuesta en todos los casos
+    else:
+        print(f'ID de usuario: {user_id}')
     return render_template('index.html')
 
 if __name__ == '__main__':
