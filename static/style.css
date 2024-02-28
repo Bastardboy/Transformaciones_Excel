@@ -152,3 +152,21 @@ body {
 
     /* Agrega otros estilos específicos para pantallas pequeñas si es necesario */
 }
+
+
+/* Estilo para el fondo de las cartas */
+.card {
+    background-color: #375d9d; /* Cambia el color según tus preferencias */
+    border-radius: 15px; /* Ajusta según sea necesario */
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+/* Estilo para el color del texto en los títulos de las cartas */
+.card-title {
+    color: white; /* Cambia el color según tus preferencias */
+}
