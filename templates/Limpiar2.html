@@ -11,7 +11,17 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 
-<body class="container mt-5">
+<body>
+
+    <nav class="navbar navbar-expand-lg navigation-gtd-movil only-mobile">
+        <div class="barra_navegacion__logo desktop_footer">
+            <a href="#">
+                <img alt="GTD Chile" data-src="static\layout_set_logo.png" class=" lazyloaded"
+                    src="static\layout_set_logo.png">
+            </a>
+        </div>
+    </nav>
+<div class="container mt-5">
     <h1 class="mb-4">Consolidación de archivos Excel</h1>
 
     <form method="post" action="limpiar_archivos" enctype="multipart/form-data" id="form_concatenar_las_columnas">
@@ -60,11 +70,11 @@
         this.value = nombres.join(', ');
     });
     </script>
+</div>
 </body>
-
 <div class="footer">
     <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+    <button type="button" class="btn btn-secondary mb-3" id="toggle_checkbox_btn">Mostrar/Ocultar Casillas</button>
     <p>&copy; 2024 Procesador de Archivos Excel</p>
 </div>
-
 </html>

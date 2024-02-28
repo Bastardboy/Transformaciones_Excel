@@ -104,9 +104,15 @@
     margin-bottom: 10px;
 }
 
-/* Estilos para el cuerpo de la página */
 body {
     padding-bottom: 70px; /* Altura del pie de página */
+}
+
+body.centered-fields {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
 /* Estilos para el encabezado */
@@ -126,6 +132,7 @@ body {
     position: fixed;
     bottom: 0;
     width: 100%;
+    margin-top: auto;
 }
 
 .footer a {
@@ -168,6 +175,13 @@ body {
     text-align: center; /* Centrar el texto en los campos de entrada */
     margin: auto 0;
 }
+
+@media (min-width: 7100px) {
+    .container{
+        max-width: 1200px;
+    }
+}
+
 
 /* Media query para pantallas pequeñas */
 @media (max-width: 768px) {

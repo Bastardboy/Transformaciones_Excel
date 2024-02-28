@@ -14,8 +14,17 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 
-<body class="container text-center">
+<body>
     
+    <nav class="navbar navbar-expand-lg navigation-gtd-movil only-mobile">
+        <div class="barra_navegacion__logo desktop_footer">
+            <a href="/">
+                <img alt="GTD Chile" data-src="static\layout_set_logo.png" class=" lazyloaded"
+                    src="static\layout_set_logo.png">
+            </a>
+        </div>
+    </nav>
+<div class="container text-center">
     <h1 class="text-center mt-5 mb-4">Búsqueda de Folios</h1>
 
     <div id="parametrosBusqueda" class="mb-4">
@@ -154,7 +163,7 @@
             };
 
 
-            const ApiUrl = 'http://101.44.8.53/buscar_folios';
+            const ApiUrl = 'http://127.0.0.1:5000/buscar_folios';
     
             fetch(ApiUrl, {
                     method: 'POST',
@@ -203,7 +212,7 @@
             const headerCell1 = headerRow.insertCell(0);
             const headerCell2 = headerRow.insertCell(1);
             headerCell1.innerHTML = '<b>Folio</b>';
-            headerCell2.innerHTML = '<b>Enlace de Descarga</b>';
+            headerCell2.innerHTML = '<b>Click para Descargar</b>';
     
             // Cuerpo de la tabla
             for (let i = 0; i < enlacesDescarga.length; i++) {
@@ -236,7 +245,9 @@
                 resultadoDescargas.appendChild(table);
             }
         }
-    
+
+
+   // Sección para permitir descargar todos los folios con el botón  
         async function descargarTodos() {
             const enlacesDescarga = document.querySelectorAll('#resultadoDescargas a');
             
@@ -266,6 +277,8 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+
+    // Sección que limpia los resultados previos, para que no se acumulen en la página    
         function limpiarResultados() {
             // Limpia el contenido del contenedor de resultados
             const resultadoDescargas = document.getElementById('resultadoDescargas');
@@ -314,15 +327,14 @@
             } else if (rutSeleccionado === '93737000') {
                 resolucion = 22;
             } else {
-                resolucion = 0; // Valor por defecto o lógica adicional según tus necesidades
+                resolucion = 0;
             }
     
-            // Actualizar el valor del elemento HTML para mostrar la resolución
             document.getElementById(`resolucion_${indice}`).textContent = resolucion;
-
-            //verificarCamposCompletos();
         }
 
+
+        // Comprobación de campos completos para habilitar el botón de "Realizar Búsqueda", además si se borra el dato del campo "Nombre de Empresa", limpiar y ocultar los otros campos
         function verificarCamposCompletos(indice) {
             const nombreEmpresaInput = document.getElementById(`nombreEmpresa_${indice}`);
             const nombreEmpresa = nombreEmpresaInput.value.trim();
@@ -330,7 +342,6 @@
             const tipoInput = document.getElementById(`tipo_${indice}`);
             const numerosFolioInput = document.getElementById(`numerosFolio_${indice}`);
 
-            // Si se borra el dato del campo "Nombre de Empresa", limpiar y ocultar los otros campos
             if (!nombreEmpresa) {
                 limpiarCampos(indice);
                 return false;
@@ -348,22 +359,20 @@
             // Habilitar o deshabilitar el botón de "Realizar Búsqueda" según la condición
             realizarDescargasBtn.disabled = !camposCompletos;
 
-            // Mostrar u ocultar Campo 2 según si el Campo 1 tiene algún valor
             const campo4Container = document.getElementById(`parametro_${indice}_campo4`);
             campo4Container.style.display = nombreEmpresa ? 'block' : 'none';
 
-            // Mostrar u ocultar Campo 3 según si el Campo 2 tiene algún valor
             const campo3Container = document.getElementById(`parametro_${indice}_campo3`);
             campo3Container.style.display = rut ? 'block' : 'none';
 
-            // Mostrar u ocultar Campo 4 según si el Campo 3 tiene algún valor
             const campo2Container = document.getElementById(`parametro_${indice}_campo2`);
             campo2Container.style.display = tipo ? 'block' : 'none';
 
             return camposCompletos;
         }
 
-
+        
+        // Función para limpiar y ocultar los campos si se borra el dato del campo "Nombre de Empresa"
         function limpiarCampos(indice) {
             const rutInput = document.getElementById(`rut_${indice}`);
             const tipoInput = document.getElementById(`tipo_${indice}`);
@@ -374,7 +383,6 @@
             tipoInput.value = '';
             numerosFolioInput.value = '';
 
-            // Ocultar los campos
             const campo4Container = document.getElementById(`parametro_${indice}_campo4`);
             campo4Container.style.display = 'none';
 
@@ -384,19 +392,17 @@
             const campo2Container = document.getElementById(`parametro_${indice}_campo2`);
             campo2Container.style.display = 'none';
 
-            // Deshabilitar el botón de "Realizar Búsqueda"
             const realizarDescargasBtn = document.getElementById('realizarDescargasBtn');
             realizarDescargasBtn.disabled = true;
 
-            // Limpiar los resultados anteriores
             limpiarResultados();
         }
 
+        // Se puede pegar los números de folio con espacios, comas o ambos y se ordenaran nf1, nf2, nf3, etc.
         function formatearNumerosFolio(indice) {
             const numerosFolioInput = document.getElementById(`numerosFolio_${indice}`);
             const numerosFolio = numerosFolioInput.value;
 
-            // Reemplaza espacios con comas
             const numerosFolioFormateados = numerosFolio.replace(/\s+/g, ', ');
 
             // Elimina espacios adicionales después de la sustitución
@@ -413,12 +419,15 @@
 
     <!-- Enlace a Bootstrap JS y Popper.js (necesarios para algunas funciones de Bootstrap) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-   
-    </body>
 
-    <div class="footer">
-        <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
-        <p>&copy; 2024 Procesador de Archivos Excel</p>
-    </div>
-    
+</div>
+
+
+</body>
+
+<div class="footer">
+    <a href="/" class="btn btn-primary mb-3">Volver al inicio</a>
+    <p>&copy; 2024 Procesador de Archivos Excel</p>
+</div>
+
 </html>
