@@ -10,6 +10,8 @@
     <!-- Enlace a Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-...." crossorigin="anonymous" />
+
 
 </head>
 
@@ -27,59 +29,78 @@
         <h1 class="text-center mb-4">test</h1>
 
         <div class="row">
+            <!-- Ejemplo para la primera tarjeta, repite el mismo patrón para las demás tarjetas -->
             <div class="col-lg-5 col-md-6 mb-4">
                 <div class="card mb-4">
-                    <div class="card-header" style="background-color: #eda215;">
-                        <!-- Color de fondo para el encabezado -->
-                    </div>
+                    <div class="card-header" style="background-color: #eda215;"></div>
                     <div class="card-body text-center">
-                        <h4 class="card-title">Limpiar Excels bajo un patrón específico</h4>
-                        <div style="margin-bottom: 20px;"></div>
-                        <a href="/limpiar" class="btn btn-yellow">Ir</a>
+                        <div class="icon-title">
+                            <img src="static\icons8-sort-by-modified-date-50.png" alt="Tu Icono" class="card-icon">
+                            <h4 class="card-title">Limpiar Excels</h4>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-description"> Elimine Incongruensias</p>
+                            <a href="/limpiar" class="btn btn-yellow">Ir</a>
+                        </div>
                     </div>
                 </div>
             </div>
+
+
             
-            <div class="col-lg-5 col-md-6 mb-4">
-                <div class="card mb-4">
-                    <div class="card-header" style="background-color: #4db99c;">
-                        <!-- Color de fondo para el encabezado -->
+        <!-- Ejemplo para la tarjeta actual -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card mb-4">
+                <div class="card-header card-header-consolidar"></div>
+                <div class="card-body text-center">
+                    <div class="icon-title">
+                        <img src="static\icons8-clear-64.png" alt="Tu Icono" class="card-icon">
+                        <h4 class="card-title">Consolidar Información</h4>
                     </div>
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Consolidar información de Excels</h4>
-                        <!-- Espacio entre el título y el botón -->
-                        <div style="margin-bottom: 20px;"></div>
+                    <div class="card-content">
+                        <p class="card-description">Consolide sus archivos</p>
                         <a href="/consolidar" class="btn btn-aqua">Ir</a>
                     </div>
                 </div>
             </div>
-            
+        </div>
 
-            <div class="col-lg-5 col-md-6 mb-4">
-                <div class="card mb-4">
-                    <div class="card-header" style="background-color: #66799f;">
-                        <!-- Color de fondo para el encabezado -->
-                    </div>
-                    <div class="card-body text-center">
+            
+        <!-- Ejemplo para la tarjeta actual -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card mb-4">
+                <div class="card-header card-header-csv"></div>
+                <div class="card-body text-center">
+                    <div class="icon-title">
+                        <img src="static\icons8-clear-64.png" alt="Tu Icono" class="card-icon">
                         <h4 class="card-title">Limpiar archivos CSV</h4>
-                        <div style="margin-bottom: 20px;"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-description">Limpieza masiva</p>
                         <a href="/detalles" class="btn btn-blue">Ir</a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-5 col-md-6 mb-4">
-                <div class="card mb-4">
-                    <div class="card-header" style="background-color: #d07673;">
-                    <!-- Color de fondo para el encabezado -->
-                    </div>
-                    <div class="card-body text-center">
+        </div>
+
+
+        <!-- Ejemplo para la tarjeta actual -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card mb-4">
+                <div class="card-header card-header-pdf"></div>
+                <div class="card-body text-center">
+                    <div class="icon-title">
+                        <img src="static\icons8-pdf-50.png" alt="Tu Icono" class="card-icon">
                         <h4 class="card-title">Búsqueda y descarga PDF</h4>
-                        <div style="margin-bottom: 20px;"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-description">Obtención y Descarga.</p>
                         <a href="/buscar" class="btn btn-red">Ir</a>
                     </div>
                 </div>
             </div>
+        </div>
+
             
         </div>
     </div>

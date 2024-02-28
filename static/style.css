@@ -54,12 +54,12 @@
 
 .btn-red {
     background-color: #d07673;
-    color: white;
+    color: black;
 }
 
 .btn-yellow {
     background-color: #eda215;
-    color: white;
+    color: black;
 }
 
 .btn-yellow:hover {
@@ -68,7 +68,7 @@
 
 .btn-aqua {
     background-color: #4db99c;
-    color: white;
+    color: black;
 }
 
 .btn-aqua:hover {
@@ -77,11 +77,31 @@
 
 .btn-blue {
     background-color: #66799f;
-    color: white;
+    color: black;
 }
 
 .btn-blue:hover {
     background-color: #4e6eaf;
+}
+
+/* Estilos adicionales para la estructura de botones */
+.card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-description {
+    margin-bottom: 15px;
+    color: black; /* Ajusta el color del texto de la descripción */
+}
+
+.btn {
+    margin-top: auto; /* Empuja el botón hacia abajo para alinearlo al final del contenedor */
+}
+
+.card-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
 }
 
 /* Estilos para el cuerpo de la página */
@@ -99,13 +119,22 @@ body {
 
 /* Estilos para el pie de página */
 .footer {
+    margin-top: 20px; /* Añade espacio sobre el pie de página */
+    padding: 10px;
     background-color: #f8f9fa;
-    padding: 2vh; /* Porcentaje de la altura de la ventana */
     text-align: center;
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
+}
+
+.footer a {
+    margin-right: 10px;
+}
+
+.footer p {
+    font-size: 12px; /* Ajusta el tamaño de la fuente para que sea más pequeño */
+    margin: 0;
 }
 
 /* Estilos para la caja de selección */
@@ -153,7 +182,6 @@ body {
     /* Agrega otros estilos específicos para pantallas pequeñas si es necesario */
 }
 
-
 .row {
     display: flex;
     align-items: center;
@@ -162,9 +190,8 @@ body {
     padding: 20px; /* Espaciado interior */
 }
 
-/* Estilos para las tarjetas */
 .card {
-    background-color: #375d9d;
+    background-color: #ffffff;
     border-radius: 15px;
     overflow: hidden;
     transition: transform 0.3s;
@@ -176,25 +203,52 @@ body {
 }
 
 .card-title {
-    color: white;
-}
-
-
-.footer {
-    margin-top: 20px; /* Add some space above the footer */
-    padding: 10px;
-    background-color: #f8f9fa;
-    text-align: center;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-
-.footer a {
-    margin-right: 10px;
-}
-
-.footer p {
-    font-size: 12px; /* Adjust the font size to make it smaller */
     margin: 0;
+    color: black;
+}
+
+.card-header {
+    height: 10px; /* Altura de la barra de color */
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.icon-title i {
+    display: flex;
+    align-items: flex-start;
+}
+
+.icon-title img {
+    margin-right: 10px; /* Ajusta el margen derecho de la imagen (ícono) */
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.icon-title {
+    display: flex;
+    align-items: center;
+}
+
+.card-description {
+    margin-top: 5px; /* Ajusta el margen superior de la descripción */
+    margin-bottom: auto; /* Ajusta el margen inferior de la descripción para que ocupe el espacio restante */
+    color: black; /* Ajusta el color del texto de la descripción */
+}
+
+.card-header-pdf {
+    background-color: #d07673;
+}
+
+.card-header-csv {
+    background-color: #66799f;
+}
+
+.card-header-consolidar{
+    background-color: #4db99c;
 }
