@@ -317,63 +317,6 @@ def consolidar_archivos(archivo_base, archivos_combinar, header_base, header_com
         print(f'Error al consolidar archivos: {e}')
         return None
     
-def validar_pdf(ruta_archivo):
-    try:
-        with open(ruta_archivo, 'rb') as archivo_pdf:
-            pdf_reader = PdfReader(archivo_pdf)
-            return len(pdf_reader.pages) > 0
-    except Exception as e:
-        return False
-    
-
-def descargar_pdf(folio, tipo, rut, resolucion, nombre_empresa, directorio_usuario):
-    enlace = f'http://soaoci2.grupogtd.com/DTEPlus/getFactura.jsp?folio={folio}&tipo={tipo}&rut={rut}&resolucion={resolucion}&=.pdf'
-    nombre_archivo = f'{nombre_empresa}_{folio}.pdf'
-    ruta_destino = os.path.join(directorio_usuario, nombre_archivo)
-
-    try:
-        with requests.get(enlace, stream=True) as respuesta:
-            respuesta.raise_for_status()
-
-            if "application/pdf" in respuesta.headers.get("content-type", ""):
-                with open(ruta_destino, 'wb') as archivo_destino:
-                    archivo_destino.write(respuesta.content)
-
-                if validar_pdf(ruta_destino):
-                    return {'nombre_empresa': nombre_empresa, 'folio': folio, 'enlace_descarga': f'/descargas/{nombre_archivo}'}
-                else:
-                    os.remove(ruta_destino)
-                    return f"Error al validar el PDF para el folio {folio}"
-            else:
-                return f"El enlace {enlace} no devuelve un archivo PDF."
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 404:
-            return f"El recurso no se encontró para el folio {folio}"
-        else:
-            return f"Error al descargar {enlace}: {e}"
-    except Exception as e:
-        return f"Error inesperado: {e}"
-    
-def descargar_en_paralelo(parametros, directorio_usuario):
-    folios = parametros['numeros_de_folio']
-    tipo = parametros['tipo']
-    rut = parametros['rut']
-    resolucion = parametros['resolucion']
-    nombre_empresa = parametros['nombre_empresa']
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(descargar_pdf, folio, tipo, rut, resolucion, nombre_empresa, directorio_usuario) for folio in folios]
-
-        enlaces_descarga = []
-        errores = []
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            if isinstance(result, dict):
-                enlaces_descarga.append(result)
-            else:
-                errores.append(result)
-
-    return enlaces_descarga, errores
 
 def eliminar_archivo_despues_de_tiempo(ruta_archivo, delay):
     time.sleep(delay)
