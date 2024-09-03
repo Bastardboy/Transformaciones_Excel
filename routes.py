@@ -10,7 +10,6 @@ import threading
 app = Flask(__name__)
 UPLOAD_FOLDER = 'Folios'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'tu_clave_secreta_super_secreta'  # Cambia esto a una cadena segura
 #logging.info('El servidor ha iniciado')
 
 @app.route('/obtener_columnas', methods=['GET'])
