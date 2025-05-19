@@ -1,4 +1,4 @@
-# 🚀 Desarrollo de transformación de datos y desdcarga masiva.
+# 🚀 Desarrollo de transformación de datos y descarga masiva.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
